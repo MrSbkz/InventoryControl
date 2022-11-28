@@ -5,7 +5,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["InventoryControl/InventoryControl.csproj", "./InventoryControl.csproj"]
+COPY ["InventoryControl/InventoryControl.csproj", "./InventoryControl"]
 RUN dotnet restore "InventoryControl/InventoryControl.csproj"
 COPY . .
 WORKDIR "/src/."
