@@ -10,6 +10,11 @@
         <DockerfileContext>.</DockerfileContext>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    </PropertyGroup>
+
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DocumentationFile>bin\Debug\InventoryControl.xml</DocumentationFile>
       <NoWarn>1701;1702;1591;IL2121</NoWarn>
