@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data
 {
-    public class InbentoryControlDbContext:IdentityDbContext<User>
+    public class InventoryControlDbContext:IdentityDbContext<User>
     {
-        public InbentoryControlDbContext(DbContextOptions<InbentoryControlDbContext> options) : base(options)
+        public InventoryControlDbContext(DbContextOptions<InventoryControlDbContext> options) : base(options)
         { }
     }
 }
