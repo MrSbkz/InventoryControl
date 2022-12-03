@@ -1,8 +1,8 @@
 using InventoryControl.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Configuration;
 using System.Reflection;
-using Microsoft.
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +23,8 @@ builder.Services.AddSwaggerGen(swagger =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     swagger.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
-builder.Services.AddDbContext<InbentoryControlDbContext>(options =>
-    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<InventoryControlDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddCors(options =>
 {
