@@ -12,7 +12,7 @@
 
         public DateTime CreatedDate { get; set; }
 
-        public string CreatedById { get; set; }
+        public string CreatedById { get; set; }=string.Empty;
 
         public int StatusId { get; set; }
 

@@ -13,9 +13,9 @@ namespace InventoryControl.Data.Configurations
                 .HasForeignKey(x => x.DeviceId);
 
             builder.Entity<Inventory>()
-                .HasOne(x => x.CretedBy)
+                .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => x.CretedById);
+                .HasForeignKey(x => x.CreatedById);
         }
     }
 }
