@@ -8,8 +8,10 @@
 
         public DateTime RegisterDate { get; set; }
 
-        public int UserId { get; set; }
+        public string? UserId { get; set; }
 
-        public DateTime DecommissionDateP { get; set; }
+        public DateTime? DecommissionDate { get; set; }
+
+        public User? User { get; set; }
     }
 }
