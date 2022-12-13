@@ -53,7 +53,7 @@ namespace InventoryControl.Services
 
         public async Task<AuthResponse> RegisterAsync(RegisterModel model)
         {
-            var userExixts = await _userManager.FindByNameAsync(model.Name);
+            var userExixts = await _userManager.FindByNameAsync(model.UserName);
             if (userExixts != null)
             {
                 return new AuthResponse { Status = "Error", Reasons = new List<string> {"User already exists"},};
@@ -61,7 +61,7 @@ namespace InventoryControl.Services
 
             var user = new User
             {
-                UserName = model.Name,
+                UserName = model.UserName,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 

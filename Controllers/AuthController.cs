@@ -1,6 +1,6 @@
 ﻿using InventoryControl.Data.Entities;
+using InventoryControl.Models;
 using InventoryControl.Services.Interface;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,13 +17,28 @@ namespace InventoryControl.Controllers
         {
             _userManager = userManager;
             _authService = authService;
-        }   
+        }
 
         [HttpPost]
         [Route("login")]
-        public async Tack<IActionResult> LoginAsync(LoginModel)
+        public async Task<IActionResult> LoginAsync(LoginModel model)
         {
-            return Ok();
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            {
+                return Ok(await _authService.LoginAsync(user));
+            }
+            return Unauthorized("Wrong Login or password");
+        }
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> RegisterAsync(RegisterModel model)
+        {
+            var result = await _authService.RegisterAsync(model);
+             
+            return result.Status.Equals("Error",StringComparison.OrdinalIgnoreCase)
+                ? BadRequest(result)
+                : Ok(result);
         }
     }
 }
