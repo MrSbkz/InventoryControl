@@ -73,9 +73,8 @@ namespace InventoryControl.Services
                     Status = "Error",
                     Reasons = result.Errors.Select(x => x.Description).ToList(),
                 };
-
-                return new AuthResponse {Status= "Success",Reasons = new List<string> {"User created successfukky!" },};
             }
+            return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfukky!" }, };
         }
     }
 }
