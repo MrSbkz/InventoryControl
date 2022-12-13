@@ -1,6 +1,11 @@
-﻿namespace InventoryControl.Services.Interface
+﻿using InventoryControl.Data.Entities;
+using InventoryControl.Models;
+
+namespace InventoryControl.Services.Interface
 {
-    public class IAuthService
+    public interface IAuthService
     {
+        public Task<LoginResponse> LoginAsync(User user);
+        public Task<AuthResponse> RegisterAsync(RegisterModel model);
     }
 }
