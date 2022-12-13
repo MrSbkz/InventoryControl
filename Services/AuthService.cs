@@ -74,6 +74,11 @@ namespace InventoryControl.Services
                     Reasons = result.Errors.Select(x => x.Description).ToList(),
                 };
             }
+            foreach (var userRole in model.Role)
+            {
+                await _userManager.AddToRoleAsync(user, userRole);
+            }
+          
             return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfukky!" }, };
         }
     }
