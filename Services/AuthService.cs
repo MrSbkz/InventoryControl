@@ -39,7 +39,6 @@ namespace InventoryControl.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddDays(30),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSignigKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -74,11 +73,13 @@ namespace InventoryControl.Services
                     Reasons = result.Errors.Select(x => x.Description).ToList(),
                 };
             }
-            foreach (var userRole in model.Role)
+            if (model.Roles!=null)
             {
-                await _userManager.AddToRoleAsync(user, userRole);
+                foreach (var userRole in model.Roles)
+                {
+                    await _userManager.AddToRoleAsync(user, userRole);
+                }
             }
-          
             return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfukky!" }, };
         }
     }
