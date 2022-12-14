@@ -1,6 +1,6 @@
 ﻿using InventoryControl.Data.Entities;
 using InventoryControl.Models;
-using InventoryControl.Services.Interface;
+using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -61,6 +61,8 @@ namespace InventoryControl.Services
             var user = new User
             {
                 UserName = model.UserName,
+                FirstName= model.FirstName, 
+                LastName= model.LastName,  
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
@@ -80,7 +82,7 @@ namespace InventoryControl.Services
                     await _userManager.AddToRoleAsync(user, userRole);
                 }
             }
-            return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfukky!" }, };
+            return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfully!" }, };
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using InventoryControl.Data.Entities;
 using InventoryControl.Models;
 
-namespace InventoryControl.Services.Interface
+namespace InventoryControl.Services.Contracts
 {
     public interface IAuthService
     {

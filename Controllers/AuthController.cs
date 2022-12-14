@@ -1,6 +1,6 @@
 ﻿using InventoryControl.Data.Entities;
 using InventoryControl.Models;
-using InventoryControl.Services.Interface;
+using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

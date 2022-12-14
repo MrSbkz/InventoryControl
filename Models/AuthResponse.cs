@@ -4,6 +4,6 @@
     {
         public string Status { get; set; }=string.Empty;
 
-        public IList<string> Reasons { get; set; } 
+        public IList<string>? Reasons { get; set; } 
     }
 }
