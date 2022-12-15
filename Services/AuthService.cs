@@ -20,33 +20,40 @@ namespace InventoryControl.Services
             _configuration = configuration;
         }
 
-        public async Task<LoginResponse> LoginAsync(User user)
+        public async Task<LoginResponse> LoginAsync(LoginModel model)
         {
-            var userRoles = await _userManager.GetRolesAsync(user);
 
-            var authClaims = new List<Claim>
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            {
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                }
+                var authSignigKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+
+                var token = new JwtSecurityToken(
+                    issuer: _configuration["JWT:ValidIssuer"],
+                    audience: _configuration["JWT:ValidAudience"],
+                    claims: authClaims,
+                    signingCredentials: new SigningCredentials(authSignigKey, SecurityAlgorithms.HmacSha256)
+                    );
+
+                return new LoginResponse
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                };
             }
-            var authSignigKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:ValidIssuer"],
-                audience: _configuration["JWT:ValidAudience"],
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSignigKey, SecurityAlgorithms.HmacSha256)
-                );
-
-            return new LoginResponse
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-            };
+            else
+                return null;
 
         }
 
@@ -55,19 +62,19 @@ namespace InventoryControl.Services
             var userExixts = await _userManager.FindByNameAsync(model.UserName);
             if (userExixts != null)
             {
-                return new AuthResponse { Status = "Error", Reasons = new List<string> {"User already exists"},};
+                return new AuthResponse { Status = "Error", Reasons = new List<string> { "User already exists" }, };
             }
 
             var user = new User
             {
                 UserName = model.UserName,
-                FirstName= model.FirstName, 
-                LastName= model.LastName,  
+                FirstName = model.FirstName,
+                LastName = model.LastName,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded) 
+            if (!result.Succeeded)
             {
                 return new AuthResponse
                 {
@@ -75,7 +82,7 @@ namespace InventoryControl.Services
                     Reasons = result.Errors.Select(x => x.Description).ToList(),
                 };
             }
-            if (model.Roles!=null)
+            if (model.Roles != null)
             {
                 foreach (var userRole in model.Roles)
                 {

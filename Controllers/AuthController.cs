@@ -17,28 +17,70 @@ namespace InventoryControl.Controllers
         {
             _userManager = userManager;
             _authService = authService;
+
         }
 
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> LoginAsync(LoginModel model)
         {
-            var user = await _userManager.FindByNameAsync(model.UserName);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            try
             {
-                return Ok(await _authService.LoginAsync(user));
+                var user = await _userManager.FindByNameAsync(model.UserName);
+                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                {
+                    return Ok(new Response<LoginResponse>
+                    {
+                        Data = await _authService.LoginAsync(user)
+                    });
+                }
+                else
+                {
+                    return Unauthorized(new Response<LoginResponse>
+                    {
+                        Errors = new List<string> { "Wrong UserName or password" }
+                    });
+                }
+
             }
-            return Unauthorized("Wrong Login or password");
+            catch (Exception e)
+            {
+                return Unauthorized(new Response<LoginResponse>
+                {
+                    Errors = new List<string> { e.ToString() }
+                });
+            }
+
+
         }
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegisterAsync(RegisterModel model)
         {
-            var result = await _authService.RegisterAsync(model);
-             
-            return result.Status.Equals("Error",StringComparison.OrdinalIgnoreCase)
-                ? BadRequest(result)
-                : Ok(result);
+            Response<LoginResponse> response = new Response<LoginResponse>();
+            try
+            {
+                var result = await _authService.RegisterAsync(model);
+                return result.Status.Equals("Error", StringComparison.OrdinalIgnoreCase)
+                ? BadRequest(new Response<AuthResponse>
+                {
+                    Errors = new List<string> { result.ToString() }
+                })
+                : Ok(new Response<AuthResponse>
+                {
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<AuthResponse>
+                {
+                    Errors = new List<string> { e.ToString() }
+                });
+            }
+
+
+
         }
     }
 }

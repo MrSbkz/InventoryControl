@@ -5,7 +5,7 @@ namespace InventoryControl.Services.Contracts
 {
     public interface IAuthService
     {
-        public Task<LoginResponse> LoginAsync(User user);
+        public Task<LoginResponse> LoginAsync(LoginModel model);
 
         public Task<AuthResponse> RegisterAsync(RegisterModel model);
     }
