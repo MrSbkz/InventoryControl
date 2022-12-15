@@ -26,18 +26,20 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
-                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                var user = await _authService.LoginAsync(model);
+                if (user!=null)
                 {
                     return Ok(new Response<LoginResponse>
                     {
-                        Data = await _authService.LoginAsync(user)
+                        IsSuccess= true,
+                        Data = user
                     });
                 }
                 else
                 {
                     return Unauthorized(new Response<LoginResponse>
                     {
+                        IsSuccess= false,
                         Errors = new List<string> { "Wrong UserName or password" }
                     });
                 }
@@ -47,6 +49,7 @@ namespace InventoryControl.Controllers
             {
                 return Unauthorized(new Response<LoginResponse>
                 {
+                    IsSuccess= false,
                     Errors = new List<string> { e.ToString() }
                 });
             }
@@ -64,10 +67,12 @@ namespace InventoryControl.Controllers
                 return result.Status.Equals("Error", StringComparison.OrdinalIgnoreCase)
                 ? BadRequest(new Response<AuthResponse>
                 {
+                    IsSuccess= false,
                     Errors = new List<string> { result.ToString() }
                 })
                 : Ok(new Response<AuthResponse>
                 {
+                    IsSuccess= true,
                     Data = result
                 });
             }
@@ -75,6 +80,7 @@ namespace InventoryControl.Controllers
             {
                 return BadRequest(new Response<AuthResponse>
                 {
+                    IsSuccess= false,
                     Errors = new List<string> { e.ToString() }
                 });
             }
