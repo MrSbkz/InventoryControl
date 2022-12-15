@@ -4,7 +4,7 @@ namespace InventoryControl.Models
 {
     public class RegisterModel
     {
-        [Required(ErrorMessage = "Login is required")]
+        [Required(ErrorMessage = "UserName is required")]
         public string UserName { get; set; }=string.Empty;
 
         public string FirstName { get; set; }=string.Empty;

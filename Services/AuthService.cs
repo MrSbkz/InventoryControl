@@ -22,29 +22,28 @@ namespace InventoryControl.Services
 
         public async Task<LoginResponse> LoginAsync(LoginModel model)
         {
-
             var user = await _userManager.FindByNameAsync(model.UserName);
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
 
                 var authClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
 
                 foreach (var userRole in userRoles)
                 {
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
-                var authSignigKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+                var authSigingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
                 var token = new JwtSecurityToken(
                     issuer: _configuration["JWT:ValidIssuer"],
                     audience: _configuration["JWT:ValidAudience"],
                     claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSignigKey, SecurityAlgorithms.HmacSha256)
+                    signingCredentials: new SigningCredentials(authSigingKey, SecurityAlgorithms.HmacSha256)
                     );
 
                 return new LoginResponse
@@ -57,12 +56,12 @@ namespace InventoryControl.Services
 
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterModel model)
+        public async Task<Response<RegisterModel>> RegisterAsync(RegisterModel model)
         {
-            var userExixts = await _userManager.FindByNameAsync(model.UserName);
-            if (userExixts != null)
+            var userFind = await _userManager.FindByNameAsync(model.UserName);
+            if (userFind != null)
             {
-                return new AuthResponse { Status = "Error", Reasons = new List<string> { "User already exists" }, };
+                return new Response<RegisterModel> { IsSuccess = false, Errors = new List<string> { "User already exists" }, };
             }
 
             var user = new User
@@ -73,23 +72,23 @@ namespace InventoryControl.Services
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(userFind, model.Password);
             if (!result.Succeeded)
             {
-                return new AuthResponse
+                return new Response<RegisterModel>
                 {
-                    Status = "Error",
-                    Reasons = result.Errors.Select(x => x.Description).ToList(),
+                    IsSuccess = false,
+                    Errors = result.Errors.Select(x => x.Description).ToList(),
                 };
             }
             if (model.Roles != null)
             {
                 foreach (var userRole in model.Roles)
                 {
-                    await _userManager.AddToRoleAsync(user, userRole);
+                    await _userManager.AddToRoleAsync(userFind, userRole);
                 }
             }
-            return new AuthResponse { Status = "Success", Reasons = new List<string> { "User created successfully!" }, };
+            return new Response<RegisterModel> { IsSuccess = false, Errors = new List<string> { "User created successfully!" }, };
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using InventoryControl.Data.Entities;
-using InventoryControl.Models;
+﻿using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts
 {
@@ -7,6 +6,6 @@ namespace InventoryControl.Services.Contracts
     {
         public Task<LoginResponse> LoginAsync(LoginModel model);
 
-        public Task<AuthResponse> RegisterAsync(RegisterModel model);
+        public Task<Response<RegisterModel>> RegisterAsync(RegisterModel model);
     }
 }

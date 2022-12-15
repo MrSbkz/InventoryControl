@@ -17,7 +17,6 @@ namespace InventoryControl.Controllers
         {
             _userManager = userManager;
             _authService = authService;
-
         }
 
         [HttpPost]
@@ -26,20 +25,20 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var user = await _authService.LoginAsync(model);
-                if (user!=null)
+                var token = await _authService.LoginAsync(model);
+                if (token != null)
                 {
                     return Ok(new Response<LoginResponse>
                     {
-                        IsSuccess= true,
-                        Data = user
+                        IsSuccess = true,
+                        Data = token
                     });
                 }
                 else
                 {
                     return Unauthorized(new Response<LoginResponse>
                     {
-                        IsSuccess= false,
+                        IsSuccess = false,
                         Errors = new List<string> { "Wrong UserName or password" }
                     });
                 }
@@ -47,11 +46,7 @@ namespace InventoryControl.Controllers
             }
             catch (Exception e)
             {
-                return Unauthorized(new Response<LoginResponse>
-                {
-                    IsSuccess= false,
-                    Errors = new List<string> { e.ToString() }
-                });
+                return Unauthorized(e);
             }
 
 
@@ -64,23 +59,17 @@ namespace InventoryControl.Controllers
             try
             {
                 var result = await _authService.RegisterAsync(model);
-                return result.Status.Equals("Error", StringComparison.OrdinalIgnoreCase)
-                ? BadRequest(new Response<AuthResponse>
+                return Ok(new Response<Response<RegisterModel>>
                 {
-                    IsSuccess= false,
-                    Errors = new List<string> { result.ToString() }
-                })
-                : Ok(new Response<AuthResponse>
-                {
-                    IsSuccess= true,
+                    IsSuccess = true,
                     Data = result
                 });
             }
             catch (Exception e)
             {
-                return BadRequest(new Response<AuthResponse>
+                return BadRequest(new Response<Response<RegisterModel>>
                 {
-                    IsSuccess= false,
+                    IsSuccess = false,
                     Errors = new List<string> { e.ToString() }
                 });
             }
