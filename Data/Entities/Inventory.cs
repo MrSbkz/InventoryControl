@@ -6,7 +6,7 @@
 
         public int DeviceId { get; set; }
 
-        public string CreatedById { get; set; } =string.Empty;
+        public string CreatedById { get; set; } = string.Empty;
 
         public DateTime InventoryDate { get; set; }
 

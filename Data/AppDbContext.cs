@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data
 {
-    public class AppDbContext:IdentityDbContext<User>
+    public class AppDbContext : IdentityDbContext<User>
     {
         public DbSet<DeviceHistory> DeviceHistories { get; set; }
 
@@ -22,9 +22,9 @@ namespace InventoryControl.Data
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         { }
 
-        protected override void OnModelCreating (ModelBuilder builder) 
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating (builder);
+            base.OnModelCreating(builder);
             DeviceConfiguration.Create(builder);
             DeviceHistoryConfiguration.Create(builder);
             InventoryConfiguration.Create(builder);

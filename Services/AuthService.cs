@@ -37,13 +37,13 @@ namespace InventoryControl.Services
                 {
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
-                var authSigingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
                 var token = new JwtSecurityToken(
                     issuer: _configuration["JWT:ValidIssuer"],
                     audience: _configuration["JWT:ValidAudience"],
                     claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigingKey, SecurityAlgorithms.HmacSha256)
+                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
                 return new LoginResponse
@@ -51,15 +51,14 @@ namespace InventoryControl.Services
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                 };
             }
-            else
-                return null;
+            
 
         }
 
         public async Task<Response<RegisterModel>> RegisterAsync(RegisterModel model)
         {
-            var userFind = await _userManager.FindByNameAsync(model.UserName);
-            if (userFind != null)
+            var existingUser = await _userManager.FindByNameAsync(model.UserName);
+            if (existingUser != null)
             {
                 return new Response<RegisterModel> { IsSuccess = false, Errors = new List<string> { "User already exists" }, };
             }
@@ -72,7 +71,7 @@ namespace InventoryControl.Services
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
-            var result = await _userManager.CreateAsync(userFind, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
                 return new Response<RegisterModel>
@@ -85,7 +84,7 @@ namespace InventoryControl.Services
             {
                 foreach (var userRole in model.Roles)
                 {
-                    await _userManager.AddToRoleAsync(userFind, userRole);
+                    await _userManager.AddToRoleAsync(user, userRole);
                 }
             }
             return new Response<RegisterModel> { IsSuccess = false, Errors = new List<string> { "User created successfully!" }, };

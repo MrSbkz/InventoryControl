@@ -54,8 +54,7 @@ namespace InventoryControl.Controllers
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegisterAsync(RegisterModel model)
-        {
-            Response<LoginResponse> response = new Response<LoginResponse>();
+        {           
             try
             {
                 var result = await _authService.RegisterAsync(model);
@@ -67,10 +66,10 @@ namespace InventoryControl.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new Response<Response<RegisterModel>>
+                return BadRequest(new Response<RegisterModel>
                 {
                     IsSuccess = false,
-                    Errors = new List<string> { e.ToString() }
+                    Errors = new List<string> { e.Message }
                 });
             }
 
