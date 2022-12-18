@@ -26,39 +26,36 @@ namespace InventoryControl.Controllers
             try
             {
                 var token = await _authService.LoginAsync(model);
-                if (token != null)
-                {
-                    return Ok(new Response<LoginResponse>
-                    {
-                        IsSuccess = true,
-                        Data = token
-                    });
-                }
-                else
-                {
-                    return Unauthorized(new Response<LoginResponse>
-                    {
-                        IsSuccess = false,
-                        Errors = new List<string> { "Wrong UserName or password" }
-                    });
-                }
 
+                return Ok(new Response<LoginResponse>
+                {
+                    IsSuccess = true,
+                    Data = token
+                });
             }
+
             catch (Exception e)
             {
-                return Unauthorized(e);
+                return Unauthorized(e.Message);
             }
-
-
         }
+
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegisterAsync(RegisterModel model)
-        {           
+        {
             try
             {
                 var result = await _authService.RegisterAsync(model);
-                return Ok(new Response<Response<RegisterModel>>
+                if (result.Any(s=>s.Contains("must")))
+                {
+                    return BadRequest(new Response<IList<string>>
+                    {
+                        IsSuccess = false,
+                        Errors =  result
+                    });
+                }
+                return Ok(new Response<IList<string>>
                 {
                     IsSuccess = true,
                     Data = result
@@ -66,15 +63,12 @@ namespace InventoryControl.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new Response<RegisterModel>
+                return BadRequest(new Response<IList<string>>
                 {
                     IsSuccess = false,
                     Errors = new List<string> { e.Message }
                 });
             }
-
-
-
         }
     }
 }
