@@ -10,12 +10,10 @@ namespace InventoryControl.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
         private readonly IAuthService _authService;
 
         public AuthController(UserManager<User> userManager, IAuthService authService)
         {
-            _userManager = userManager;
             _authService = authService;
         }
 
@@ -36,7 +34,11 @@ namespace InventoryControl.Controllers
 
             catch (Exception e)
             {
-                return Unauthorized(e.Message);
+                return BadRequest(new Response<LoginResponse>
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
             }
         }
 
@@ -47,20 +49,23 @@ namespace InventoryControl.Controllers
             try
             {
                 var result = await _authService.RegisterAsync(model);
-                if (result.Any(s=>s.Contains("must")))
+
+                if (result.IsSuccess == false)
                 {
-                    return BadRequest(new Response<IList<string>>
+                    return BadRequest(new Response<RegisterRespons>
                     {
                         IsSuccess = false,
-                        Errors =  result
+                        Errors = result.Data.ToList()
                     });
                 }
+
                 return Ok(new Response<IList<string>>
                 {
                     IsSuccess = true,
-                    Data = result
+                    Data = result.Data.ToList(),
                 });
             }
+
             catch (Exception e)
             {
                 return BadRequest(new Response<IList<string>>

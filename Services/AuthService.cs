@@ -23,21 +23,23 @@ namespace InventoryControl.Services
         public async Task<LoginResponse> LoginAsync(LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
+
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                await GiveToken(user);
+                return await GetToken(user);
             }
-            throw new Exception("Wrong UserName or password");
-
-
+            else
+            {
+                throw new Exception("Wrong UserName or password");
+            }
         }
 
-        public async Task<IList<string>> RegisterAsync(RegisterModel model)
+        public async Task<RegisterRespons> RegisterAsync(RegisterModel model)
         {
             var existingUser = await _userManager.FindByNameAsync(model.UserName);
+
             if (existingUser != null)
             {
-
                 throw new Exception("User already exists");
             }
 
@@ -48,35 +50,40 @@ namespace InventoryControl.Services
                 LastName = model.LastName,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
+
             var result = await _userManager.CreateAsync(user, model.Password);
+
             if (!result.Succeeded)
-            {      
-               return result.Errors.Select(x => x.Description).ToList();
-            }
-            if (model.Roles != null)
             {
-                foreach (var userRole in model.Roles)
+                return new RegisterRespons
                 {
-                    await _userManager.AddToRoleAsync(user, userRole);
-                }
+                    IsSuccess = false,
+                    Data = result.Errors.Select(x => x.Description).ToList()
+                };
             }
-            return new List<string> { "User created successfully!"};
+
+            return new RegisterRespons
+            {
+                IsSuccess = true,
+                Data = new List<string> { "User created successfully!" }
+            };
         }
 
-        private async Task<LoginResponse> GiveToken(User user)
+        private async Task<LoginResponse> GetToken(User user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
 
             var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
+            {
+                new (ClaimTypes.Name, user.UserName),
+                new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
 
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
+
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
             var token = new JwtSecurityToken(

@@ -31,5 +31,4 @@ namespace InventoryControl.Data
             TicketConfiguration.Create(builder);
         }
     }
-
 }
