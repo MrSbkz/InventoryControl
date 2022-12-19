@@ -1,6 +1,6 @@
 ﻿namespace InventoryControl.Models
 {
-    public class RegisterRespons
+    public class RegisterResponse
     {
         public bool IsSuccess { get; set; }
 

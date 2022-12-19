@@ -34,7 +34,7 @@ namespace InventoryControl.Services
             }
         }
 
-        public async Task<RegisterRespons> RegisterAsync(RegisterModel model)
+        public async Task<RegisterResponse> RegisterAsync(RegisterModel model)
         {
             var existingUser = await _userManager.FindByNameAsync(model.UserName);
 
@@ -55,14 +55,14 @@ namespace InventoryControl.Services
 
             if (!result.Succeeded)
             {
-                return new RegisterRespons
+                return new RegisterResponse
                 {
                     IsSuccess = false,
                     Data = result.Errors.Select(x => x.Description).ToList()
                 };
             }
 
-            return new RegisterRespons
+            return new RegisterResponse
             {
                 IsSuccess = true,
                 Data = new List<string> { "User created successfully!" }

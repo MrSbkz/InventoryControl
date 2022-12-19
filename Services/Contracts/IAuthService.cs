@@ -6,6 +6,6 @@ namespace InventoryControl.Services.Contracts
     {
         public Task<LoginResponse> LoginAsync(LoginModel model);
 
-        public Task<RegisterRespons> RegisterAsync(RegisterModel model);
+        public Task<RegisterResponse> RegisterAsync(RegisterModel model);
     }
 }

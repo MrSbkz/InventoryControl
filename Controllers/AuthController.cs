@@ -12,7 +12,7 @@ namespace InventoryControl.Controllers
     {
         private readonly IAuthService _authService;
 
-        public AuthController(UserManager<User> userManager, IAuthService authService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
@@ -52,23 +52,23 @@ namespace InventoryControl.Controllers
 
                 if (result.IsSuccess == false)
                 {
-                    return BadRequest(new Response<RegisterRespons>
+                    return BadRequest(new Response<RegisterResponse>
                     {
                         IsSuccess = false,
                         Errors = result.Data.ToList()
                     });
                 }
 
-                return Ok(new Response<IList<string>>
+                return Ok(new Response<RegisterResponse>
                 {
                     IsSuccess = true,
-                    Data = result.Data.ToList(),
+                    Data = result
                 });
             }
 
             catch (Exception e)
             {
-                return BadRequest(new Response<IList<string>>
+                return BadRequest(new Response<RegisterResponse>
                 {
                     IsSuccess = false,
                     Errors = new List<string> { e.Message }
