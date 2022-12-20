@@ -59,10 +59,10 @@ namespace InventoryControl.Controllers
                     });
                 }
 
-                return Ok(new Response<RegisterResponse>
+                return Ok(new Response<string>
                 {
                     IsSuccess = true,
-                    Data = result
+                    Data = result.Data.FirstOrDefault()
                 });
             }
 
