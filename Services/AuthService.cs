@@ -53,7 +53,6 @@ namespace InventoryControl.Services
             
             var result = await _userManager.CreateAsync(user, model.Password);
 
-
             if (!result.Succeeded)
             {
                 return new RegisterResponse
