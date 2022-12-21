@@ -50,8 +50,9 @@ namespace InventoryControl.Services
                 LastName = model.LastName,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
-
+            
             var result = await _userManager.CreateAsync(user, model.Password);
+
 
             if (!result.Succeeded)
             {
@@ -60,6 +61,11 @@ namespace InventoryControl.Services
                     IsSuccess = false,
                     Data = result.Errors.Select(x => x.Description).ToList()
                 };
+            }
+
+            foreach (var userRole in model.Roles)
+            {
+                await _userManager.AddToRoleAsync(user, userRole);
             }
 
             return new RegisterResponse
