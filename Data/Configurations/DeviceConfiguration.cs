@@ -11,7 +11,6 @@ namespace InventoryControl.Data.Configurations
                 .HasOne(x => x.User)
                 .WithMany()
                 .HasForeignKey(x => x.UserId);
-
         }
     }
 }

@@ -31,6 +31,30 @@ builder.Services.AddSwaggerGen(swagger =>
         Title = "InventoryControl",
     });
 
+    swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description =
+                       "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
+    });
+    swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     swagger.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
@@ -81,11 +105,16 @@ var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityR
 await RoleInitializer.InitializeAsync(roleManager);
 
 app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryControl v1"));
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseAuthentication();
+
+app.UseCors();
 
 app.MapControllers();
 

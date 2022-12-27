@@ -1,12 +1,11 @@
-﻿using InventoryControl.Data.Entities;
-using InventoryControl.Models;
+﻿using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryControl.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("controller")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -55,14 +54,14 @@ namespace InventoryControl.Controllers
                     return BadRequest(new Response<RegisterResponse>
                     {
                         IsSuccess = false,
-                        Errors = result.Data.ToList()
+                        Errors = result.Data!.ToList()
                     });
                 }
 
                 return Ok(new Response<string>
                 {
                     IsSuccess = true,
-                    Data = result.Data.FirstOrDefault()
+                    Data = result.Data!.FirstOrDefault()
                 });
             }
 
