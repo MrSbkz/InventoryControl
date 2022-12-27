@@ -11,7 +11,7 @@ namespace InventoryControl.Controllers
     public class RoleController : ControllerBase
     {
         [HttpGet]
-        [Route ("roles")]
+        [Route("roles")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [ProducesResponseType(typeof(IList<string>), 200)]
         public IActionResult GetRoles()
@@ -20,8 +20,8 @@ namespace InventoryControl.Controllers
             {
                 return Ok(new Response<IList<string>>
                 {
-                    IsSuccess= true,
-                    Data= HttpContextHelper.GetRoleFromContext(HttpContext)
+                    IsSuccess = true,
+                    Data = HttpContextHelper.GetRoleFromContext(HttpContext)
                 });
             }
 
