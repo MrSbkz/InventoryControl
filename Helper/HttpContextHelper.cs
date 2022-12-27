@@ -1,6 +1,6 @@
 ﻿namespace InventoryControl.Helper
 {
-    public class HttpContextHelper
+    public static class HttpContextHelper
     {
         public static IList<string> GetRoleFromContext(HttpContext context) 
         {

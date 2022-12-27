@@ -1,7 +1,6 @@
 using InventoryControl.Data;
 using InventoryControl.Data.Entities;
 using InventoryControl.Data.Initializers;
-using InventoryControl.Helper;
 using InventoryControl.Services;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -112,6 +111,8 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryCo
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseAuthentication();
 
 app.UseCors();
 
