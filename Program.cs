@@ -106,6 +106,7 @@ var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityR
 await RoleInitializer.InitializeAsync(roleManager);
 
 app.UseSwagger();
+
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryControl v1"));
 
 app.UseHttpsRedirection();
