@@ -50,7 +50,7 @@ namespace InventoryControl.Services
                 LastName = model.LastName,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
-            
+
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
@@ -94,6 +94,7 @@ namespace InventoryControl.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddDays(30),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
