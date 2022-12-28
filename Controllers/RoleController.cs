@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryControl.Controllers
 {
-    [Route("controller")]
     [ApiController]
     public class RoleController : ControllerBase
     {
@@ -14,7 +13,7 @@ namespace InventoryControl.Controllers
         [Route("roles")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [ProducesResponseType(typeof(IList<string>), 200)]
-        public IActionResult GetRoles()
+        public IActionResult ListRoles()
         {
             try
             {

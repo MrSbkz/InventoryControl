@@ -112,9 +112,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseAuthentication();
-
 app.UseCors();
+
+app.UseAuthentication();
 
 app.MapControllers();
 
