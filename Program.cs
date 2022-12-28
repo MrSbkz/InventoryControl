@@ -108,13 +108,13 @@ app.UseSwagger();
 
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryControl v1"));
 
+app.UseCors();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.UseAuthentication();
-
-app.UseCors();
 
 app.MapControllers();
 

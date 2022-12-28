@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryControl.Controllers
 {
-    [Route("controller")]
     [ApiController]
+    [Route("[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
