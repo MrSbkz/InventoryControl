@@ -5,15 +5,15 @@ namespace InventoryControl.Services.Contracts;
 
 public interface IUserService
 {
-    public Task<UserModel> GetUsers { get; set; }
+    public Task<IList<UserModel>> GetUsersAsync();
 
-    public Task<User> GetByUser { get; set; }
+    public Task<User> GetByUserAsync(UserModel model);
 
-    public Task<User> AddUser { get; set; }
+    public Task<RegisterResponse> AddUserAsync(RegisterModel model);
 
-    public Task<User> UpdateUser { get; set; }
+    public Task<string> UpdateUserAsync(UserModel model);
 
-    public Task<string> ResetPassword { get; set; }
+    public Task<string> ResetPasswordAsync(User model, string lastPassword, string newPassword);
 
-    public Task<string> DeleteUser { get; set; }
+    public Task<string> DeleteUserAsync(UserModel model);
 }
