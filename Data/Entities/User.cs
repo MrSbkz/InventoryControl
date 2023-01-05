@@ -8,6 +8,6 @@ namespace InventoryControl.Data.Entities
 
         public string LastName { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

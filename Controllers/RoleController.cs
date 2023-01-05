@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InventoryControl.Controllers
 {
     [ApiController]
-    [Route ("[controller]")]
+    [Route("[controller]")]
     public class RoleController : ControllerBase
     {
         [HttpGet]

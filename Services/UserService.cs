@@ -1,4 +1,6 @@
-﻿using InventoryControl.Data.Entities;
+﻿using AutoMapper;
+using InventoryControl.Data.Entities;
+using InventoryControl.Mapper.Profile;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
@@ -10,29 +12,25 @@ public class UserService : IUserService
 {
     private UserManager<User> _userManager;
     private RoleManager<IdentityRole> _roleManager;
+    private IMapper _mapper;
 
-    public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+    public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _mapper = mapper;
     }
 
-    public async Task<IList<UserModel>> GetUsersAsync()
+    public async Task<IList<UserDTO>> GetUsersAsync()
     {
         var users = await _userManager.Users.ToListAsync();
-        var usersList = new List<UserModel>();
-        foreach (var user in usersList)
-        {
-            var userDto = user;
-            usersList.Add(userDto);
-        }
-
-        return usersList;
+      
+        return _mapper.Map<IList<UserDTO>>(users);
     }
 
-    public async Task<User> GetByUserAsync(UserModel model)
+    public async Task<User> GetByUserAsync(UserDTO dto)
     {
-        var user = await _userManager.FindByNameAsync(model.UserName);
+        var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user != null)
         {
             return user;
@@ -54,6 +52,7 @@ public class UserService : IUserService
             UserName = model.UserName,
             FirstName = model.FirstName,
             LastName = model.LastName,
+            IsActive = true,
             SecurityStamp = Guid.NewGuid().ToString(),
         };
 
@@ -80,14 +79,14 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<string> UpdateUserAsync(UserModel model)
+    public async Task<string> UpdateUserAsync(UserDTO dto)
     {
-        var user = await _userManager.FindByNameAsync(model.UserName);
+        var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user != null)
         {
-            user.UserName = model.UserName;
-            user.FirstName = model.FistName;
-            user.LastName = model.LastName;
+            user.UserName = dto.UserName;
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
             await _userManager.UpdateAsync(user);
 
             return "User update successfully!";
@@ -108,9 +107,9 @@ public class UserService : IUserService
             throw new Exception("Wrong UserName or password");
     }
 
-    public async Task<string> DeleteUserAsync(UserModel model)
+    public async Task<string> DeleteUserAsync(UserDTO dto)
     {
-        var user = await _userManager.FindByNameAsync(model.UserName);
+        var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user.IsActive == true)
         {
             user.IsActive = false;

@@ -21,6 +21,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddSwaggerGen(swagger =>
 {
@@ -59,7 +62,7 @@ builder.Services.AddSwaggerGen(swagger =>
     swagger.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
-builder.Services.AddAutoMapper(typeof(Program));
+
 
 // For Identity
 builder.Services.AddIdentity<User, IdentityRole>()
