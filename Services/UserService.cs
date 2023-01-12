@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using InventoryControl.Data.Entities;
-using InventoryControl.Mapper.Profile;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
@@ -10,30 +9,35 @@ namespace InventoryControl.Services;
 
 public class UserService : IUserService
 {
-    private UserManager<User> _userManager;
-    private RoleManager<IdentityRole> _roleManager;
-    private IMapper _mapper;
+    private readonly UserManager<User> _userManager;
+    private readonly IMapper _mapper;
 
-    public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
+    public UserService(UserManager<User> userManager, IMapper mapper)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
         _mapper = mapper;
     }
 
-    public async Task<IList<UserDTO>> GetUsersAsync()
+    public async Task<Page<UserDto>> GetUsersAsync(int currentPage, int pageSize)
     {
-        var users = await _userManager.Users.ToListAsync();
-      
-        return _mapper.Map<IList<UserDTO>>(users);
+        var users = await _userManager.Users.Where(x => x.IsActive).Skip((currentPage - 1) * pageSize).Take(pageSize)
+            .ToListAsync();
+
+        return new Page<UserDto>()
+        {
+            CurrentPage = currentPage,
+            PageSize = pageSize,
+            TotalItems = _userManager.Users.Count(x => x.IsActive),
+            Content = await GetUserDtosAsync(users)
+        };
     }
 
-    public async Task<User> GetByUserAsync(UserDTO dto)
+    public async Task<UserDto?> GetUserAsync(string? userName)
     {
-        var user = await _userManager.FindByNameAsync(dto.UserName);
+        var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            return user;
+            return await GetUserDtoAsync(user);
         }
 
         throw new Exception("User is not found");
@@ -79,43 +83,70 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<string> UpdateUserAsync(UserDTO dto)
-    {
-        var user = await _userManager.FindByNameAsync(dto.UserName);
-        if (user != null)
-        {
-            user.UserName = dto.UserName;
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-            await _userManager.UpdateAsync(user);
-
-            return "User update successfully!";
-        }
-        else
-            throw new Exception("User is not found");
-    }
-
-    public async Task<string> ResetPasswordAsync(User model, string lastPassword, string newPassword)
+    public async Task<string> UpdateUserAsync(UpdateUserModel model)
     {
         var user = await _userManager.FindByNameAsync(model.UserName);
-        if (user != null && await _userManager.CheckPasswordAsync(user, lastPassword))
+        if (user != null)
         {
-            user.PasswordHash = newPassword;
-            return "Password successfully changed";
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var addedRoles = model.Roles.Except(userRoles);
+            var removedRoles = userRoles.Except(model.Roles);
+
+            await _userManager.AddToRolesAsync(user, addedRoles);
+            await _userManager.RemoveFromRolesAsync(user, removedRoles);
+
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+
+            await _userManager.UpdateAsync(user);
+            return "User update successfully!";
         }
-        else
-            throw new Exception("Wrong UserName or password");
+
+        throw new Exception("User is not found");
     }
 
-    public async Task<string> DeleteUserAsync(UserDTO dto)
+    public async Task<string> DeleteUserAsync(string userName)
     {
-        var user = await _userManager.FindByNameAsync(dto.UserName);
-        if (user.IsActive == true)
+        var user = await _userManager.FindByNameAsync(userName);
+        if (user.IsActive)
         {
             user.IsActive = false;
-            return "User banned";
+            await _userManager.UpdateAsync(user);
+            return "User got inactive";
         }
-        else
-            return "User already banned";
+
+        return "User already inactive";
+    }
+
+    public async Task<string> RestoreUserAsync(string userName)
+    {
+        var user = await _userManager.FindByNameAsync(userName);
+        if (!user.IsActive)
+        {
+            user.IsActive = true;
+            await _userManager.UpdateAsync(user);
+            return "User got active";
+        }
+
+        return "User already active";
+    }
+
+
+    private async Task<IList<UserDto>> GetUserDtosAsync(List<User> users)
+    {
+        var result = new List<UserDto>();
+        foreach (var user in users)
+        {
+            result.Add(await GetUserDtoAsync(user));
+        }
+
+        return result;
+    }
+
+    private async Task<UserDto> GetUserDtoAsync(User user)
+    {
+        var userDto = _mapper.Map<UserDto>(user);
+        userDto.Roles = await _userManager.GetRolesAsync(user);
+        return userDto;
     }
 }

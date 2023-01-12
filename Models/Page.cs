@@ -1,6 +1,6 @@
 ﻿namespace InventoryControl.Models;
 
-public class PageModel<T>
+public class Page<T>
 {
     public int CurrentPage { get; set; }
 
@@ -10,5 +10,5 @@ public class PageModel<T>
 
     public int TotalPages => (int)Math.Ceiling((decimal)TotalItems / PageSize);
 
-    public T Content { get; set; }
+    public IList<T> Content { get; set; } = new List<T>();
 }

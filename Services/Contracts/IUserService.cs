@@ -1,19 +1,18 @@
-﻿using InventoryControl.Data.Entities;
-using InventoryControl.Models;
+﻿using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 
 public interface IUserService
 {
-    public Task<IList<UserDTO>> GetUsersAsync();
+    public Task<Page<UserDto>> GetUsersAsync(int currentPage, int pageSize);
 
-    public Task<User> GetByUserAsync(UserDTO dto);
+    public Task<UserDto?> GetUserAsync(string? userName);
 
     public Task<RegisterResponse> AddUserAsync(RegisterModel model);
 
-    public Task<string> UpdateUserAsync(UserDTO dto);
+    public Task<string> UpdateUserAsync(UpdateUserModel dto);
 
-    public Task<string> ResetPasswordAsync(User model, string lastPassword, string newPassword);
+    public Task<string> DeleteUserAsync(string userName);
 
-    public Task<string> DeleteUserAsync(UserDTO dto);
+    public Task<string> RestoreUserAsync(string userName);
 }

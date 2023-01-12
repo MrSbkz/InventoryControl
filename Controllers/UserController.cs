@@ -1,6 +1,7 @@
-﻿using InventoryControl.Data.Entities;
+﻿using InventoryControl.Helper;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryControl.Controllers
@@ -17,14 +18,15 @@ namespace InventoryControl.Controllers
         }
 
         [HttpGet]
-        [Route("getusers")]
-        public async Task<IActionResult> GetUsersAsync()
+        [Route("list")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetUsersAsync(int? currentPage = 1, int? pageSize = 20)
         {
             try
             {
-                var result = await _userService.GetUsersAsync();
+                var result = await _userService.GetUsersAsync(currentPage!.Value, pageSize!.Value);
 
-                return Ok(new Response<IList<UserDTO>>()
+                return Ok(new Response<Page<UserDto>>()
                 {
                     IsSuccess = true,
                     Data = result
@@ -41,25 +43,17 @@ namespace InventoryControl.Controllers
         }
 
         [HttpGet]
-        [Route("getbyuser")]
-        public async Task<IActionResult> GetByUserAsync([FromQuery] UserDTO dto)
+        [Authorize]
+        public async Task<IActionResult> GetUserAsync()
         {
             try
             {
-                var result = await _userService.GetByUserAsync(dto);
-                if (result != null)
+                var userName = HttpContextHelper.GetUserFromContext(HttpContext);
+                var result = await _userService.GetUserAsync(userName);
+                return Ok(new Response<UserDto>()
                 {
-                    return Ok(new Response<User>()
-                    {
-                        IsSuccess = true,
-                        Data = result
-                    });
-                }
-
-                return BadRequest(new Response<string>()
-                {
-                    IsSuccess = false,
-                    Errors = new List<string> { result!.ToString() }
+                    IsSuccess = true,
+                    Data = result
                 });
             }
             catch (Exception e)
@@ -73,8 +67,8 @@ namespace InventoryControl.Controllers
         }
 
         [HttpPost]
-        [Route("adduser")]
-        public async Task<IActionResult> AddUSerAsync(RegisterModel model)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> AddUserAsync(RegisterModel model)
         {
             try
             {
@@ -107,36 +101,12 @@ namespace InventoryControl.Controllers
         }
 
         [HttpPut]
-        [Route("update")]
-        public async Task<IActionResult> UpdateUserAsync(UserDTO dto)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateUserAsync(UpdateUserModel model)
         {
             try
             {
-                var result = await _userService.UpdateUserAsync(dto);
-
-                return Ok(new Response<string>()
-                {
-                    IsSuccess = true,
-                    Data = result
-                });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new Response<string>()
-                {
-                    IsSuccess = false,
-                    Errors = new List<string> { e.Message }
-                });
-            }
-        }
-
-        [HttpPut]
-        [Route("reset-password")]
-        public async Task<IActionResult> ResetPasswordUserAsync(User model, string lastPassword, string newPassword)
-        {
-            try
-            {
-                var result = await _userService.ResetPasswordAsync(model, lastPassword, newPassword);
+                var result = await _userService.UpdateUserAsync(model);
 
                 return Ok(new Response<string>()
                 {
@@ -155,12 +125,37 @@ namespace InventoryControl.Controllers
         }
 
         [HttpDelete]
-        [Route("delete")]
-        public async Task<IActionResult> DeleteUserAsync(UserDTO dto)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteUserAsync(string userName)
         {
             try
             {
-                var result = await _userService.DeleteUserAsync(dto);
+                var result = await _userService.DeleteUserAsync(userName);
+
+                return Ok(new Response<string>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "admin")]
+        [Route("restore")]
+        public async Task<IActionResult> RestoreUserAsync(string userName)
+        {
+            try
+            {
+                var result = await _userService.RestoreUserAsync(userName);
 
                 return Ok(new Response<string>()
                 {

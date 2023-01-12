@@ -2,13 +2,13 @@
 using InventoryControl.Models;
 using AutoMapper;
 
-namespace InventoryControl.Mapper.Profile;
+namespace InventoryControl.Mapper.Profiles;
 
-public class UserProfile : AutoMapper.Profile
+public class UserProfile : Profile
 {
     public UserProfile()
     {
-        CreateMap<User, UserDTO>();
+        CreateMap<User, UserDto>();
     }
 }
             

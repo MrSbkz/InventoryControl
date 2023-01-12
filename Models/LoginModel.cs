@@ -4,7 +4,7 @@ namespace InventoryControl.Models
 {
     public class LoginModel
     {
-        [Required(ErrorMessage = "Username is required")]
+        [Required(ErrorMessage = "UserName is required")]
         public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
