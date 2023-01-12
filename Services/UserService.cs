@@ -45,8 +45,7 @@ public class UserService : IUserService
 
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
-        var existingUser = await _userManager.FindByNameAsync(model.UserName);
-        if (existingUser != null)
+        if (_userManager.Users.Any(x => x.UserName == model.UserName))
         {
             throw new Exception("User already exists");
         }
