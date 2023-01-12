@@ -21,6 +21,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddSwaggerGen(swagger =>
 {
@@ -58,6 +61,8 @@ builder.Services.AddSwaggerGen(swagger =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     swagger.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
+
+
 
 // For Identity
 builder.Services.AddIdentity<User, IdentityRole>()
@@ -112,9 +117,9 @@ app.UseCors();
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

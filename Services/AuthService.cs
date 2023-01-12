@@ -48,6 +48,7 @@ namespace InventoryControl.Services
                 UserName = model.UserName,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
+                IsActive = true,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
@@ -80,8 +81,8 @@ namespace InventoryControl.Services
 
             var authClaims = new List<Claim>
             {
-                new (ClaimTypes.Name, user.UserName),
-                new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(ClaimTypes.Name, user.UserName),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             foreach (var userRole in userRoles)
@@ -97,7 +98,7 @@ namespace InventoryControl.Services
                 expires: DateTime.Now.AddDays(30),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
+            );
 
             return new LoginResponse
             {

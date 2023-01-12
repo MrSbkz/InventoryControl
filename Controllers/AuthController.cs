@@ -1,6 +1,5 @@
 ﻿using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryControl.Controllers
@@ -34,40 +33,6 @@ namespace InventoryControl.Controllers
             catch (Exception e)
             {
                 return BadRequest(new Response<LoginResponse>
-                {
-                    IsSuccess = false,
-                    Errors = new List<string> { e.Message }
-                });
-            }
-        }
-
-        [HttpPost]
-        [Route("register")]
-        public async Task<IActionResult> RegisterAsync(RegisterModel model)
-        {
-            try
-            {
-                var result = await _authService.RegisterAsync(model);
-
-                if (result.IsSuccess == false)
-                {
-                    return BadRequest(new Response<RegisterResponse>
-                    {
-                        IsSuccess = false,
-                        Errors = result.Data!.ToList()
-                    });
-                }
-
-                return Ok(new Response<string>
-                {
-                    IsSuccess = true,
-                    Data = result.Data!.FirstOrDefault()
-                });
-            }
-
-            catch (Exception e)
-            {
-                return BadRequest(new Response<RegisterResponse>
                 {
                     IsSuccess = false,
                     Errors = new List<string> { e.Message }
