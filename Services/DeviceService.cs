@@ -37,9 +37,13 @@ public class DeviceService : IDeviceService
         };
     }
 
-    public Task<DeviceDto> GetDeviceAsync(int id)
+    public async Task<DeviceDto> GetDeviceAsync(int id)
     {
-        throw new NotImplementedException();
+        var device = await _appContext.Devices.FindAsync(id);
+        var employee = await _userManager.FindByIdAsync(device?.UserId);
+        var deviceDto = _mapper.Map<DeviceDto>(device);
+        deviceDto.AssignedTo = _mapper.Map<Employee>(employee);
+        return deviceDto;
     }
 
     public Task<DeviceDto> GetDeviceByQrAsync()
@@ -59,13 +63,18 @@ public class DeviceService : IDeviceService
 
     public async Task<string> AddDeviceAsync(RegisterDeviceModel model)
     {
+        if (!_userManager.Users.Any(x => x.UserName == model.UserName))
+        {
+            throw new Exception("User is not found");
+        }
+
         var device = new Device()
         {
             Name = model.Name,
             RegisterDate = DateTime.Today,
             User = await _userManager.FindByNameAsync(model.UserName),
             UserId = _userManager.FindByNameAsync(model.UserName).Id.ToString(),
-            DecommissionDate = null
+            DecommissionDate = null,
         };
 
         await _appContext.Devices.AddAsync(device);

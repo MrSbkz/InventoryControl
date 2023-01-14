@@ -19,13 +19,35 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("list")]
         [Authorize(Roles = "admin,accountant")]
-        public async Task<IActionResult> GetDeviceAsync(int? currentPage = 1, int? pageSize = 20)
+        public async Task<IActionResult> GetDevicesAsync(int? currentPage = 1, int? pageSize = 20)
         {
             try
             {
                 var result = await _device.GetDeviceListAsync(currentPage!.Value, pageSize!.Value);
 
                 return Ok(new Response<Page<DeviceDto>>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
+        [HttpGet]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> GetDeviceAsync(int id)
+        {
+            try
+            {
+                var result = await _device.GetDeviceAsync(id);
+                return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
                     Data = result
