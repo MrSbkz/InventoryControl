@@ -13,4 +13,9 @@ public interface IDeviceService
     public Task<string> InventoryAsync();
 
     public Task<string> AddDeviceAsync(RegisterDeviceModel model);
+
+    public Task<string> UpdateDeviceAsync(UpdateDeviceModel model);
+    
+    public Task<string> DeleteDeviceAsync(int id);
+    
 }

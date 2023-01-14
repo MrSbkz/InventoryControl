@@ -86,5 +86,52 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+        [HttpPut]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> UpdateDeviceAsync(UpdateDeviceModel model)
+        {
+            try
+            {
+                var result = await _device.UpdateDeviceAsync(model);
+
+                return Ok(new Response<string>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
+
+        [HttpDelete]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> DeleteUserAsync(int id)
+        {
+            try
+            {
+                var result = await _device.DeleteDeviceAsync(id);
+
+                return Ok(new Response<string>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
     }
 }

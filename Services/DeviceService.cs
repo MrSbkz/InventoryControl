@@ -84,6 +84,49 @@ public class DeviceService : IDeviceService
         return "Device created successfully";
     }
 
+    public async Task<string> UpdateDeviceAsync(UpdateDeviceModel model)
+    {
+        var device = await _appContext.Devices.FindAsync(model.Id);
+        if (device==null)
+        {
+            throw new Exception("Device is not found");
+        }
+
+        var user = await _userManager.FindByNameAsync(model.AssignedTo.UserName);
+        
+        if (user!=null)
+        {
+            device.Name = model.Name;
+            device.User = await _userManager.FindByNameAsync(model.AssignedTo.UserName);
+            device.UserId = _userManager.FindByNameAsync(model.AssignedTo.UserName).Id.ToString();
+
+            _appContext.Devices.Update(device);
+            
+            await _appContext.SaveChangesAsync();
+            return "Device update successfully!";
+        }
+        throw new Exception("User is not found");
+    }
+
+    public async Task<string> DeleteDeviceAsync(int id)
+    {
+        var device = await _appContext.Devices.FindAsync(id);
+        if (device?.DecommissionDate!=null)
+        {
+            return "Device already decommissioned";
+        }
+
+        if (device != null)
+        {
+            device.DecommissionDate = DateTime.Today;
+            _appContext.Devices.Update(device);
+        }
+
+        await _appContext.SaveChangesAsync();
+        
+        return "Device decommissioned";
+    }
+
     private async Task<IList<DeviceDto>> MapDevice(List<Device> model)
     {
         var result = new List<DeviceDto>();
