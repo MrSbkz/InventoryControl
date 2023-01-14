@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data
 {
-    public class AppDbContext : IdentityDbContext<User>
+    public  class AppDbContext : IdentityDbContext<User>
     {
         public DbSet<DeviceHistory> DeviceHistories { get; set; }
 

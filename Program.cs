@@ -22,6 +22,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -42,7 +43,7 @@ builder.Services.AddSwaggerGen(swagger =>
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
         Description =
-                       "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
+            "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
     });
     swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -63,22 +64,21 @@ builder.Services.AddSwaggerGen(swagger =>
 });
 
 
-
 // For Identity
 builder.Services.AddIdentity<User, IdentityRole>()
-               .AddEntityFrameworkStores<AppDbContext>()
-               .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     // Adding Jwt Bearer  
     .AddJwtBearer(options =>
     {

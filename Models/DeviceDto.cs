@@ -1,6 +1,6 @@
 ﻿namespace InventoryControl.Models;
 
-public class Device
+public class DeviceDto
 {
     public int Id { get; set; }
     

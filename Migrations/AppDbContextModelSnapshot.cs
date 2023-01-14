@@ -22,7 +22,7 @@ namespace InventoryControl.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("InventoryControl.Data.Entities.Device", b =>
+            modelBuilder.Entity("InventoryControl.Data.Entities.DeviceDto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -183,7 +183,7 @@ namespace InventoryControl.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FirstName")
+                    b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -373,7 +373,7 @@ namespace InventoryControl.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("InventoryControl.Data.Entities.Device", b =>
+            modelBuilder.Entity("InventoryControl.Data.Entities.DeviceDto", b =>
                 {
                     b.HasOne("InventoryControl.Data.Entities.User", "User")
                         .WithMany()
@@ -401,7 +401,7 @@ namespace InventoryControl.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InventoryControl.Data.Entities.Device", "Device")
+                    b.HasOne("InventoryControl.Data.Entities.DeviceDto", "DeviceDto")
                         .WithMany()
                         .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -409,7 +409,7 @@ namespace InventoryControl.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Device");
+                    b.Navigation("DeviceDto");
                 });
 
             modelBuilder.Entity("InventoryControl.Data.Entities.Ticket", b =>
@@ -424,7 +424,7 @@ namespace InventoryControl.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InventoryControl.Data.Entities.Device", "Device")
+                    b.HasOne("InventoryControl.Data.Entities.DeviceDto", "DeviceDto")
                         .WithMany()
                         .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -434,7 +434,7 @@ namespace InventoryControl.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Device");
+                    b.Navigation("DeviceDto");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
