@@ -8,14 +8,13 @@ public interface IDeviceService
 
     public Task<DeviceDto> GetDeviceAsync(int id);
 
-    public Task<DeviceDto> GetDeviceByQrAsync();
+    public Task<QrCodeModel> GetDeviceByQrAsync(int id);
 
     public Task<string> InventoryAsync();
 
     public Task<string> AddDeviceAsync(RegisterDeviceModel model);
 
     public Task<string> UpdateDeviceAsync(UpdateDeviceModel model);
-    
+
     public Task<string> DeleteDeviceAsync(int id);
-    
 }

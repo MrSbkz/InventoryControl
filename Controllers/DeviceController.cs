@@ -40,6 +40,7 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+
         [HttpGet]
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> GetDeviceAsync(int id)
@@ -61,6 +62,18 @@ namespace InventoryControl.Controllers
                     Errors = new List<string> { e.Message }
                 });
             }
+        }
+
+        [HttpGet]
+        [Route("qr-code")]
+        [Authorize(Roles = "accountant")]
+        public async Task<FileResult> GetDeviceByQrAsync(int id)
+        {
+            
+                var result = await _device.GetDeviceByQrAsync(id);
+                
+                return File(result.Path,result.Type,result.Name);
+            
         }
 
         [HttpPost]
@@ -86,6 +99,7 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+
         [HttpPut]
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> UpdateDeviceAsync(UpdateDeviceModel model)

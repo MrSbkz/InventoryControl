@@ -3,9 +3,10 @@ using InventoryControl.Data;
 using InventoryControl.Data.Entities;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
+using QRCodeEncoderLibrary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.FileProviders;
 
 namespace InventoryControl.Services;
 
@@ -14,12 +15,17 @@ public class DeviceService : IDeviceService
     private readonly AppDbContext _appContext;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IFileProvider _fileProvider;
 
-    public DeviceService(AppDbContext appContext, IMapper mapper, UserManager<User> userManager)
+    public DeviceService(AppDbContext appContext, IMapper mapper, UserManager<User> userManager,
+        RoleManager<IdentityRole> roleManager, IFileProvider fileProvider)
     {
         _appContext = appContext;
         _mapper = mapper;
         _userManager = userManager;
+        _roleManager = roleManager;
+        _fileProvider = fileProvider;
     }
 
     public async Task<Page<DeviceDto>> GetDeviceListAsync(int currentPage, int pageSize)
@@ -46,9 +52,32 @@ public class DeviceService : IDeviceService
         return deviceDto;
     }
 
-    public Task<DeviceDto> GetDeviceByQrAsync()
+    public async Task<QrCodeModel> GetDeviceByQrAsync(int id)
     {
-        throw new NotImplementedException();
+        var device = await _appContext.Devices.FindAsync(id);
+
+        if (device != null)
+        {
+            QREncoder encoder = new()
+            {
+                ModuleSize = 10
+            };
+            encoder.Encode(device?.Id.ToString());
+            encoder.SaveQRCodeToPngFile("QRcode/" + device.Id + ".png");
+            string path = ("QRcode/" + device.Id + ".png");
+            IFileInfo fileInfo = _fileProvider.GetFileInfo(path);
+            var fs = fileInfo.CreateReadStream();
+            string contentType = "image/png";
+            string downloadName = device.Id + ".png";
+            return new QrCodeModel()
+            {
+                Name = downloadName,
+                Type = contentType,
+                Path = fs
+            };
+        }
+
+        throw new Exception("Device is not found");
     }
 
     public Task<Employee> GetEmployeeByDiveceAsync(int id)
@@ -77,41 +106,49 @@ public class DeviceService : IDeviceService
             DecommissionDate = null,
         };
 
-        await _appContext.Devices.AddAsync(device);
+        QREncoder encoder = new();
+        encoder.Encode(device?.Id.ToString());
+        if (device != null)
+        {
+            encoder.SaveQRCodeToPngFile("QRcode/" + device.Id + ".jpg");
+            await _appContext.Devices.AddAsync(device);
+        }
 
+        if (device != null) await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
 
-        return "Device created successfully";
+        return "Device added successfully ";
     }
 
     public async Task<string> UpdateDeviceAsync(UpdateDeviceModel model)
     {
         var device = await _appContext.Devices.FindAsync(model.Id);
-        if (device==null)
+        if (device == null)
         {
             throw new Exception("Device is not found");
         }
 
         var user = await _userManager.FindByNameAsync(model.AssignedTo.UserName);
-        
-        if (user!=null)
+
+        if (user != null)
         {
             device.Name = model.Name;
             device.User = await _userManager.FindByNameAsync(model.AssignedTo.UserName);
             device.UserId = _userManager.FindByNameAsync(model.AssignedTo.UserName).Id.ToString();
 
             _appContext.Devices.Update(device);
-            
+
             await _appContext.SaveChangesAsync();
             return "Device update successfully!";
         }
+
         throw new Exception("User is not found");
     }
 
     public async Task<string> DeleteDeviceAsync(int id)
     {
         var device = await _appContext.Devices.FindAsync(id);
-        if (device?.DecommissionDate!=null)
+        if (device?.DecommissionDate != null)
         {
             return "Device already decommissioned";
         }
@@ -123,9 +160,10 @@ public class DeviceService : IDeviceService
         }
 
         await _appContext.SaveChangesAsync();
-        
+
         return "Device decommissioned";
     }
+
 
     private async Task<IList<DeviceDto>> MapDevice(List<Device> model)
     {
