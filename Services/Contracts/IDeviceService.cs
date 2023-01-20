@@ -7,8 +7,10 @@ public interface IDeviceService
     public Task<Page<DeviceDto>> GetDeviceListAsync(int currentPage, int pageSize);
 
     public Task<DeviceDto> GetDeviceAsync(int id);
+    
+    public Task<IList<Employee>> GetEmployeesAsync();
 
-    public Task<QrCodeModel> GetDeviceByQrAsync(int id);
+    public Task<QrCodeModel> GetQrCodeAsync(int id);
 
     public Task<string> InventoryAsync();
 

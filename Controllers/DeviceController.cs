@@ -63,17 +63,38 @@ namespace InventoryControl.Controllers
                 });
             }
         }
-
+        
+        [HttpGet]
+        [Route("employee")]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> GetEmployeesAsync()
+        {
+            try
+            {
+                var result = await _device.GetEmployeesAsync();
+                return Ok(new Response<IList<Employee>>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
         [HttpGet]
         [Route("qr-code")]
         [Authorize(Roles = "accountant")]
         public async Task<FileResult> GetDeviceByQrAsync(int id)
         {
-            
-                var result = await _device.GetDeviceByQrAsync(id);
-                
-                return File(result.Path,result.Type,result.Name);
-            
+            var result = await _device.GetQrCodeAsync(id);
+
+            return File(result.Path, result.Type, result.Name);
         }
 
         [HttpPost]

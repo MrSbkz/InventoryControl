@@ -15,16 +15,14 @@ public class DeviceService : IDeviceService
     private readonly AppDbContext _appContext;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IFileProvider _fileProvider;
 
     public DeviceService(AppDbContext appContext, IMapper mapper, UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager, IFileProvider fileProvider)
+        IFileProvider fileProvider)
     {
         _appContext = appContext;
         _mapper = mapper;
         _userManager = userManager;
-        _roleManager = roleManager;
         _fileProvider = fileProvider;
     }
 
@@ -52,7 +50,7 @@ public class DeviceService : IDeviceService
         return deviceDto;
     }
 
-    public async Task<QrCodeModel> GetDeviceByQrAsync(int id)
+    public async Task<QrCodeModel> GetQrCodeAsync(int id)
     {
         var device = await _appContext.Devices.FindAsync(id);
 
@@ -62,13 +60,13 @@ public class DeviceService : IDeviceService
             {
                 ModuleSize = 10
             };
-            encoder.Encode(device?.Id.ToString());
-            encoder.SaveQRCodeToPngFile("QRcode/" + device.Id + ".png");
-            string path = ("QRcode/" + device.Id + ".png");
+            encoder.Encode(device.Id.ToString());
+            encoder.SaveQRCodeToPngFile("QRcode/" + device?.Id + ".png");
+            string path = ("QRcode/" + device?.Id + ".png");
             IFileInfo fileInfo = _fileProvider.GetFileInfo(path);
             var fs = fileInfo.CreateReadStream();
             string contentType = "image/png";
-            string downloadName = device.Id + ".png";
+            string downloadName = device?.Id + ".png";
             return new QrCodeModel()
             {
                 Name = downloadName,
@@ -80,9 +78,10 @@ public class DeviceService : IDeviceService
         throw new Exception("Device is not found");
     }
 
-    public Task<Employee> GetEmployeeByDiveceAsync(int id)
+    public async Task<IList<Employee>> GetEmployeesAsync()
     {
-        throw new NotImplementedException();
+        var users = await _userManager.Users.ToListAsync();
+        return _mapper.Map<IList<Employee>>(users);
     }
 
     public Task<string> InventoryAsync()
@@ -105,16 +104,7 @@ public class DeviceService : IDeviceService
             UserId = _userManager.FindByNameAsync(model.UserName).Id.ToString(),
             DecommissionDate = null,
         };
-
-        QREncoder encoder = new();
-        encoder.Encode(device?.Id.ToString());
-        if (device != null)
-        {
-            encoder.SaveQRCodeToPngFile("QRcode/" + device.Id + ".jpg");
-            await _appContext.Devices.AddAsync(device);
-        }
-
-        if (device != null) await _appContext.Devices.AddAsync(device);
+        await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
 
         return "Device added successfully ";
