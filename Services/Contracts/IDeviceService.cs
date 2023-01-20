@@ -12,7 +12,7 @@ public interface IDeviceService
 
     public Task<QrCodeModel> GetQrCodeAsync(int id);
 
-    public Task<string> InventoryAsync();
+    public Task<string> InventoryAsync(int id, string name);
 
     public Task<string> AddDeviceAsync(RegisterDeviceModel model);
 

@@ -1,4 +1,5 @@
-﻿using InventoryControl.Models;
+﻿using InventoryControl.Helper;
+using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -104,6 +105,31 @@ namespace InventoryControl.Controllers
             try
             {
                 var result = await _device.AddDeviceAsync(model);
+
+                return Ok(new Response<string>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
+        [HttpPost]
+        [Route("inventory")]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> InventoryAsync(int id)
+        {
+            try
+            {
+                var userName = HttpContextHelper.GetUserFromContext(HttpContext);
+                var result = await _device.InventoryAsync(id,userName);
 
                 return Ok(new Response<string>()
                 {

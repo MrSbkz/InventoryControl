@@ -84,9 +84,24 @@ public class DeviceService : IDeviceService
         return _mapper.Map<IList<Employee>>(users);
     }
 
-    public Task<string> InventoryAsync()
+    public async Task<string> InventoryAsync(int id, string name)
     {
-        throw new NotImplementedException();
+        var device = await _appContext.Devices.FindAsync(id);
+        var user = await _userManager.FindByNameAsync(name);
+        if (device!=null)
+        {
+            var inventory = new Inventory()
+            {
+                CreatedBy = user,
+                InventoryDate = DateTime.Today,
+                DeviceId = device.Id
+            };
+            await _appContext.Inventories.AddAsync(inventory);
+            await _appContext.SaveChangesAsync();
+            return "Inventory is successfully ";
+        }
+        
+        throw new Exception("Device is not found");
     }
 
     public async Task<string> AddDeviceAsync(RegisterDeviceModel model)
