@@ -60,19 +60,36 @@ public class DeviceService : IDeviceService
             {
                 ModuleSize = 10
             };
-            encoder.Encode(device.Id.ToString());
-            encoder.SaveQRCodeToPngFile("QRcode/" + device?.Id + ".png");
             string path = ("QRcode/" + device?.Id + ".png");
-            IFileInfo fileInfo = _fileProvider.GetFileInfo(path);
-            var fs = fileInfo.CreateReadStream();
-            string contentType = "image/png";
-            string downloadName = device?.Id + ".png";
-            return new QrCodeModel()
+            if (!File.Exists(path))
             {
-                Name = downloadName,
-                Type = contentType,
-                Path = fs
-            };
+                encoder.Encode(device.Id.ToString());
+                encoder.SaveQRCodeToPngFile("QRcode/" + device?.Id + ".png");
+                IFileInfo fileInfo = _fileProvider.GetFileInfo(path);
+                var fs = fileInfo.CreateReadStream();
+                string contentType = "image/png";
+                string downloadName = device?.Id + ".png";
+                return new QrCodeModel()
+                {
+                    Name = downloadName,
+                    Type = contentType,
+                    Path = fs
+                };
+            }
+            else
+            {
+                IFileInfo fileInfo = _fileProvider.GetFileInfo(path);
+                var fs = fileInfo.CreateReadStream();
+                string contentType = "image/png";
+                string downloadName = device?.Id + ".png";
+                return new QrCodeModel()
+                {
+                    Name = downloadName,
+                    Type = contentType,
+                    Path = fs
+                };
+            }
+            
         }
 
         throw new Exception("Device is not found");
@@ -88,7 +105,7 @@ public class DeviceService : IDeviceService
     {
         var device = await _appContext.Devices.FindAsync(id);
         var user = await _userManager.FindByNameAsync(name);
-        if (device!=null)
+        if (device != null)
         {
             var inventory = new Inventory()
             {
@@ -100,7 +117,7 @@ public class DeviceService : IDeviceService
             await _appContext.SaveChangesAsync();
             return "Inventory is successfully ";
         }
-        
+
         throw new Exception("Device is not found");
     }
 

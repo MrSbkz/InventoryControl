@@ -64,7 +64,7 @@ namespace InventoryControl.Controllers
                 });
             }
         }
-        
+
         [HttpGet]
         [Route("employee")]
         [Authorize(Roles = "accountant")]
@@ -88,6 +88,7 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+
         [HttpGet]
         [Route("qr-code")]
         [Authorize(Roles = "accountant")]
@@ -121,6 +122,7 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+
         [HttpPost]
         [Route("inventory")]
         [Authorize(Roles = "accountant")]
@@ -129,7 +131,7 @@ namespace InventoryControl.Controllers
             try
             {
                 var userName = HttpContextHelper.GetUserFromContext(HttpContext);
-                var result = await _device.InventoryAsync(id,userName);
+                var result = await _device.InventoryAsync(id, userName);
 
                 return Ok(new Response<string>()
                 {
