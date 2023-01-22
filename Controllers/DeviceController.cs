@@ -92,7 +92,7 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("qr-code")]
         [Authorize(Roles = "accountant")]
-        public async Task<FileResult> GetDeviceByQrAsync(int deviceId)
+        public async Task<FileResult> GetQrCodeAsync(int deviceId)
         {
             var result = await _device.GetQrCodeAsync(deviceId);
 
@@ -107,7 +107,7 @@ namespace InventoryControl.Controllers
             {
                 var result = await _device.AddDeviceAsync(model);
 
-                return Ok(new Response<string>()
+                return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
                     Data = result

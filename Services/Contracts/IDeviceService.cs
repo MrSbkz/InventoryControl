@@ -1,4 +1,5 @@
-﻿using InventoryControl.Models;
+﻿using InventoryControl.Data.Entities;
+using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 
@@ -14,7 +15,7 @@ public interface IDeviceService
 
     public Task<string> InventoryAsync(int id, string name);
 
-    public Task<string> AddDeviceAsync(AddDeviceModel model);
+    public Task<DeviceDto> AddDeviceAsync(AddDeviceModel model);
 
     public Task<string> UpdateDeviceAsync(UpdateDeviceModel model);
 

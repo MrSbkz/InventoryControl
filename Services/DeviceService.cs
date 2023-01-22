@@ -65,8 +65,8 @@ public class DeviceService : IDeviceService
                 ModuleSize = 10
             };
             var path = (device.Id + ".png");
-            var getLink = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
-            encoder.Encode(getLink);
+            var link = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
+            encoder.Encode(link);
             encoder.SaveQRCodeToPngFile("Images/" + path);
             var fileInfo = _fileProvider.GetFileInfo("Images/" + path);
             var fs = fileInfo.CreateReadStream();
@@ -107,7 +107,7 @@ public class DeviceService : IDeviceService
         throw new Exception("Device is not found");
     }
 
-    public async Task<string> AddDeviceAsync(AddDeviceModel model)
+    public async Task<DeviceDto> AddDeviceAsync(AddDeviceModel model)
     {
         if (!_userManager.Users.Any(x => x.UserName == model.UserName))
         {
@@ -124,7 +124,7 @@ public class DeviceService : IDeviceService
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
 
-        return "Device added successfully ";
+        return _mapper.Map<DeviceDto>(device);
     }
 
     public async Task<string> UpdateDeviceAsync(UpdateDeviceModel model)
@@ -135,13 +135,13 @@ public class DeviceService : IDeviceService
             throw new Exception("Device is not found");
         }
 
-        if (!string.IsNullOrEmpty(model.AssignedTo))
+        if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
+            device.UserId = null;
         }
 
+        device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
         device.Name = model.Name;
-
 
         _appContext.Devices.Update(device);
 
@@ -161,9 +161,8 @@ public class DeviceService : IDeviceService
         {
             device.DecommissionDate = DateTime.Now;
             _appContext.Devices.Update(device);
+            await _appContext.SaveChangesAsync();
         }
-
-        await _appContext.SaveChangesAsync();
 
         return "Device decommissioned";
     }
