@@ -10,11 +10,11 @@ namespace InventoryControl.Controllers
     [Route("[controller]")]
     public class DeviceController : ControllerBase
     {
-        private readonly IDeviceService _device;
+        private readonly IDeviceService _deviceService;
 
-        public DeviceController(IDeviceService device)
+        public DeviceController(IDeviceService deviceService)
         {
-            _device = device;
+            _deviceService = deviceService;
         }
 
         [HttpGet]
@@ -24,7 +24,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.GetDevicesAsync(currentPage!.Value, pageSize!.Value);
+                var result = await _deviceService.GetDevicesAsync(currentPage!.Value, pageSize!.Value);
 
                 return Ok(new Response<Page<DeviceDto>>()
                 {
@@ -48,7 +48,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.GetDeviceAsync(deviceId);
+                var result = await _deviceService.GetDeviceAsync(deviceId);
                 return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
@@ -72,7 +72,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.GetEmployeesAsync();
+                var result = await _deviceService.GetEmployeesAsync();
                 return Ok(new Response<IList<Employee>>()
                 {
                     IsSuccess = true,
@@ -94,7 +94,7 @@ namespace InventoryControl.Controllers
         [Authorize(Roles = "accountant")]
         public async Task<FileResult> GetQrCodeAsync(int deviceId)
         {
-            var result = await _device.GetQrCodeAsync(deviceId);
+            var result = await _deviceService.GetQrCodeAsync(deviceId);
 
             return File(result.Path, result.Type, result.Name);
         }
@@ -105,7 +105,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.AddDeviceAsync(model);
+                var result = await _deviceService.AddDeviceAsync(model);
 
                 return Ok(new Response<DeviceDto>()
                 {
@@ -131,7 +131,7 @@ namespace InventoryControl.Controllers
             try
             {
                 var userName = HttpContextHelper.GetUserFromContext(HttpContext);
-                var result = await _device.InventoryAsync(id, userName);
+                var result = await _deviceService.InventoryAsync(id, userName);
 
                 return Ok(new Response<string>()
                 {
@@ -155,7 +155,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.UpdateDeviceAsync(model);
+                var result = await _deviceService.UpdateDeviceAsync(model);
 
                 return Ok(new Response<string>()
                 {
@@ -179,7 +179,7 @@ namespace InventoryControl.Controllers
         {
             try
             {
-                var result = await _device.DecommissDeviceAsync(deviceId);
+                var result = await _deviceService.DecommissDeviceAsync(deviceId);
 
                 return Ok(new Response<string>()
                 {

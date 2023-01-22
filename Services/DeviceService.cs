@@ -64,15 +64,16 @@ public class DeviceService : IDeviceService
             {
                 ModuleSize = 10
             };
-            var path = device.Id + ".png";
+            var fileName = device.Id + ".png";
+            var path = "Images/" + fileName;
             var link = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
             encoder.Encode(link);
-            encoder.SaveQRCodeToPngFile($"Images/{device.Id}.png");
-            var fileInfo = _fileProvider.GetFileInfo($"Images/{device.Id}.png");
+            encoder.SaveQRCodeToPngFile(path);
+            var fileInfo = _fileProvider.GetFileInfo(path);
             var fs = fileInfo.CreateReadStream();
             return new QrCodeModel()
             {
-                Name = path,
+                Name = fileName,
                 Type = ContentType,
                 Path = fs
             };

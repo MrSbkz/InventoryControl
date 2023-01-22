@@ -1,5 +1,4 @@
-﻿using InventoryControl.Data.Entities;
-using InventoryControl.Models;
+﻿using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 

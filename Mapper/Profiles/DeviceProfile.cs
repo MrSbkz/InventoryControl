@@ -4,7 +4,7 @@ using InventoryControl.Models;
 
 namespace InventoryControl.Mapper.Profiles;
 
-public class DeviceProfile: Profile
+public class DeviceProfile : Profile
 {
     public DeviceProfile()
     {
