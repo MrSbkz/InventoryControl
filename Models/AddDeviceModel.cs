@@ -1,6 +1,6 @@
 ﻿namespace InventoryControl.Models;
 
-public class RegisterDeviceModel
+public class AddDeviceModel
 {
     public string Name { get; set; } = string.Empty;
 

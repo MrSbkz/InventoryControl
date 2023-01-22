@@ -45,10 +45,11 @@
         <PackageReference Include="QRCodeDecoderLibrary" Version="2.0.1" />
         <PackageReference Include="QRCodeEncoderLibrary" Version="2.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="ZXing.Net" Version="0.16.8" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="QRCode" />
+      <Folder Include="Images" />
     </ItemGroup>
 
 </Project>

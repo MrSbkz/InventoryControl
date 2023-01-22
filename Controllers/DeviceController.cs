@@ -19,12 +19,12 @@ namespace InventoryControl.Controllers
 
         [HttpGet]
         [Route("list")]
-        [Authorize(Roles = "admin,accountant")]
+        [Authorize(Roles = "accountant")]
         public async Task<IActionResult> GetDevicesAsync(int? currentPage = 1, int? pageSize = 20)
         {
             try
             {
-                var result = await _device.GetDeviceListAsync(currentPage!.Value, pageSize!.Value);
+                var result = await _device.GetDevicesAsync(currentPage!.Value, pageSize!.Value);
 
                 return Ok(new Response<Page<DeviceDto>>()
                 {
@@ -44,11 +44,11 @@ namespace InventoryControl.Controllers
 
         [HttpGet]
         [Authorize(Roles = "accountant")]
-        public async Task<IActionResult> GetDeviceAsync(int id)
+        public async Task<IActionResult> GetDeviceAsync(int deviceId)
         {
             try
             {
-                var result = await _device.GetDeviceAsync(id);
+                var result = await _device.GetDeviceAsync(deviceId);
                 return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
@@ -66,7 +66,7 @@ namespace InventoryControl.Controllers
         }
 
         [HttpGet]
-        [Route("employee")]
+        [Route("employees")]
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> GetEmployeesAsync()
         {
@@ -92,16 +92,16 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("qr-code")]
         [Authorize(Roles = "accountant")]
-        public async Task<FileResult> GetDeviceByQrAsync(int id)
+        public async Task<FileResult> GetDeviceByQrAsync(int deviceId)
         {
-            var result = await _device.GetQrCodeAsync(id);
+            var result = await _device.GetQrCodeAsync(deviceId);
 
             return File(result.Path, result.Type, result.Name);
         }
 
         [HttpPost]
         [Authorize(Roles = "accountant")]
-        public async Task<IActionResult> AddDeviceAsync(RegisterDeviceModel model)
+        public async Task<IActionResult> AddDeviceAsync(AddDeviceModel model)
         {
             try
             {
@@ -175,11 +175,11 @@ namespace InventoryControl.Controllers
 
         [HttpDelete]
         [Authorize(Roles = "accountant")]
-        public async Task<IActionResult> DeleteUserAsync(int id)
+        public async Task<IActionResult> DecommissDeviceAsync(int deviceId)
         {
             try
             {
-                var result = await _device.DeleteDeviceAsync(id);
+                var result = await _device.DecommissDeviceAsync(deviceId);
 
                 return Ok(new Response<string>()
                 {

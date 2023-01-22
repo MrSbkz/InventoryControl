@@ -9,6 +9,6 @@ public class DeviceDto
     public Employee AssignedTo { get; set; }
     
     public DateTime RegisterDate { get; set; }
-    
-    public DateTime DecommissionDate { get; set; }
+
+    public DateTime? DecommissionDate { get; set; }
 }

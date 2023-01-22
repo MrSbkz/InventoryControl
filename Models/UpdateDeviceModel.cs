@@ -6,5 +6,5 @@ public class UpdateDeviceModel
     
     public string Name { get; set; } = string.Empty;
     
-    public Employee AssignedTo { get; set; }
+    public string? AssignedTo { get; set; }
 }
