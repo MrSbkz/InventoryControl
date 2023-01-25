@@ -172,5 +172,29 @@ namespace InventoryControl.Controllers
                 });
             }
         }
+        
+        [HttpGet]
+        [Authorize(Roles = "admin")]
+        [Route("search")]
+        public async Task<IActionResult> SearchUsersAsync(string searchString)
+        {
+            try
+            {
+                var result = await _userService.SearchUsersAsync(searchString);
+                return Ok(new Response<IList<UserDto>>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
     }
 }

@@ -4,6 +4,8 @@ using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using InventoryControl.Models;
+using NuGet.Packaging;
 
 namespace InventoryControl.Services;
 
@@ -128,6 +130,34 @@ public class UserService : IUserService
         }
 
         return "User already active";
+    }
+
+    public async Task<IList<UserDto>> SearchUsersAsync(string searchString)
+    {
+        var users = new List<User>();
+
+        var usersLastName = await _userManager.Users.Where(x => x.LastName.Contains(searchString)).ToListAsync();
+
+        if (usersLastName != null)
+        {
+            users.AddRange(usersLastName);
+        }
+
+        var usersFirtsName = await _userManager.Users.Where(x => x.FirstName.Contains(searchString)).ToListAsync();
+
+        if (usersFirtsName != null)
+        {
+            users.AddRange(usersFirtsName);
+        }
+
+        var usersUserName = await _userManager.Users.Where(x => x.UserName.Contains(searchString)).ToListAsync();
+
+        if (usersUserName != null)
+        {
+            users.AddRange(usersUserName);
+        }
+
+        return await GetUserDtosAsync(users);
     }
 
 
