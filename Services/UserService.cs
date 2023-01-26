@@ -143,14 +143,20 @@ public class UserService : IUserService
             users.AddRange(usersLastName);
         }
 
-        var usersFirtsName = await _userManager.Users.Where(x => x.FirstName.Contains(searchString)).ToListAsync();
+        var usersFirtsNameDto = await _userManager.Users.Where(x => x.FirstName.Contains(searchString))
+            .ToListAsync();
+        var usersFirtsName = usersFirtsNameDto.Except(usersLastName);
 
         if (usersFirtsName != null)
         {
             users.AddRange(usersFirtsName);
         }
 
-        var usersUserName = await _userManager.Users.Where(x => x.UserName.Contains(searchString)).ToListAsync();
+        var usersUserNameDto = await _userManager.Users
+            .Where(x => x.UserName.Contains(searchString))
+            .ToListAsync();
+
+        var usersUserName = usersUserNameDto.Except(usersFirtsName);
 
         if (usersUserName != null)
         {
