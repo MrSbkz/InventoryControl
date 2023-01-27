@@ -20,11 +20,13 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("list")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> GetUsersAsync(int? currentPage = 1, int? pageSize = 20)
+        public async Task<IActionResult> GetUsersAsync(string? searchString, bool showInActiveUsers,
+            int? currentPage = 1, int? pageSize = 20)
         {
             try
             {
-                var result = await _userService.GetUsersAsync(currentPage!.Value, pageSize!.Value);
+                var result = await _userService.GetUsersAsync(searchString, showInActiveUsers, currentPage!.Value,
+                    pageSize!.Value);
 
                 return Ok(new Response<Page<UserDto>>()
                 {
@@ -158,30 +160,6 @@ namespace InventoryControl.Controllers
                 var result = await _userService.RestoreUserAsync(userName);
 
                 return Ok(new Response<string>()
-                {
-                    IsSuccess = true,
-                    Data = result
-                });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new Response<string>()
-                {
-                    IsSuccess = false,
-                    Errors = new List<string> { e.Message }
-                });
-            }
-        }
-        
-        [HttpGet]
-        [Authorize(Roles = "admin")]
-        [Route("search")]
-        public async Task<IActionResult> SearchUsersAsync(string searchString)
-        {
-            try
-            {
-                var result = await _userService.SearchUsersAsync(searchString);
-                return Ok(new Response<IList<UserDto>>()
                 {
                     IsSuccess = true,
                     Data = result

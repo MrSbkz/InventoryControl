@@ -4,8 +4,6 @@ using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using InventoryControl.Models;
-using NuGet.Packaging;
 
 namespace InventoryControl.Services;
 
@@ -20,17 +18,55 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<Page<UserDto>> GetUsersAsync(int currentPage, int pageSize)
+    public async Task<Page<UserDto>> GetUsersAsync(string? searchString, bool showInActiveUsers, int currentPage,
+        int pageSize)
     {
-        var users = await _userManager.Users.Where(x => x.IsActive).Skip((currentPage - 1) * pageSize).Take(pageSize)
-            .ToListAsync();
+        if (showInActiveUsers)
+        {
+            if (searchString == null)
+            {
+                var users = await _userManager.Users.Skip((currentPage - 1) * pageSize).Take(pageSize)
+                    .ToListAsync();
+
+                return new Page<UserDto>()
+                {
+                    CurrentPage = currentPage,
+                    PageSize = pageSize,
+                    TotalItems = _userManager.Users.Count(x => x.IsActive),
+                    Content = await GetUserDtosAsync(users)
+                };
+            }
+
+            return new Page<UserDto>()
+            {
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                TotalItems = _userManager.Users.Count(),
+                Content = await SearchUsersAsync(searchString)
+            };
+        }
+
+        if (searchString == null)
+        {
+            var users = await _userManager.Users.Where(x => x.IsActive).Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new Page<UserDto>()
+            {
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                TotalItems = _userManager.Users.Count(x => x.IsActive),
+                Content = await GetUserDtosAsync(users)
+            };
+        }
 
         return new Page<UserDto>()
         {
             CurrentPage = currentPage,
             PageSize = pageSize,
             TotalItems = _userManager.Users.Count(x => x.IsActive),
-            Content = await GetUserDtosAsync(users)
+            Content = await SearchUsersAsync(searchString)
         };
     }
 
@@ -132,20 +168,48 @@ public class UserService : IUserService
         return "User already active";
     }
 
-    public async Task<IList<UserDto>> SearchUsersAsync(string searchString)
+
+    private async Task<IList<UserDto>> GetUserDtosAsync(List<User> users)
+    {
+        var result = new List<UserDto>();
+        foreach (var user in users)
+        {
+            result.Add(await GetUserDtoAsync(user));
+        }
+
+        return result;
+    }
+
+    private async Task<UserDto> GetUserDtoAsync(User user)
+    {
+        var userDto = _mapper.Map<UserDto>(user);
+        userDto.Roles = await _userManager.GetRolesAsync(user);
+        return userDto;
+    }
+
+    private async Task<IList<UserDto>> SearchUsersAsync(string searchString)
     {
         var users = new List<User>();
+        var search = searchString.Replace(" ", "");
+        var usersFullName =
+            await _userManager.Users.Where(x => (x.FirstName + x.LastName).Contains(search)).ToListAsync();
+
+        if (usersFullName != null)
+        {
+            users.AddRange(usersFullName);
+        }
 
         var usersLastName = await _userManager.Users.Where(x => x.LastName.Contains(searchString)).ToListAsync();
+        var lastName = usersLastName.Except(usersFullName);
 
-        if (usersLastName != null)
+        if (lastName != null)
         {
-            users.AddRange(usersLastName);
+            users.AddRange(lastName);
         }
 
         var usersFirtsNameDto = await _userManager.Users.Where(x => x.FirstName.Contains(searchString))
             .ToListAsync();
-        var usersFirtsName = usersFirtsNameDto.Except(usersLastName);
+        var usersFirtsName = usersFirtsNameDto.Except(lastName);
 
         if (usersFirtsName != null)
         {
@@ -164,24 +228,5 @@ public class UserService : IUserService
         }
 
         return await GetUserDtosAsync(users);
-    }
-
-
-    private async Task<IList<UserDto>> GetUserDtosAsync(List<User> users)
-    {
-        var result = new List<UserDto>();
-        foreach (var user in users)
-        {
-            result.Add(await GetUserDtoAsync(user));
-        }
-
-        return result;
-    }
-
-    private async Task<UserDto> GetUserDtoAsync(User user)
-    {
-        var userDto = _mapper.Map<UserDto>(user);
-        userDto.Roles = await _userManager.GetRolesAsync(user);
-        return userDto;
     }
 }
