@@ -18,55 +18,38 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<Page<UserDto>> GetUsersAsync(string? searchString, bool showInActiveUsers, int currentPage,
+    public async Task<Page<UserDto>> GetUsersAsync(
+        string? searchString,
+        bool showInactiveUsers,
+        int currentPage,
         int pageSize)
     {
-        if (showInActiveUsers)
+        List<User> users;
+        if (string.IsNullOrEmpty(searchString))
         {
-            if (searchString == null)
-            {
-                var users = await _userManager.Users.Skip((currentPage - 1) * pageSize).Take(pageSize)
-                    .ToListAsync();
-
-                return new Page<UserDto>()
-                {
-                    CurrentPage = currentPage,
-                    PageSize = pageSize,
-                    TotalItems = _userManager.Users.Count(x => x.IsActive),
-                    Content = await GetUserDtosAsync(users)
-                };
-            }
-
-            return new Page<UserDto>()
-            {
-                CurrentPage = currentPage,
-                PageSize = pageSize,
-                TotalItems = _userManager.Users.Count(),
-                Content = await SearchUsersAsync(searchString)
-            };
-        }
-
-        if (searchString == null)
-        {
-            var users = await _userManager.Users.Where(x => x.IsActive).Skip((currentPage - 1) * pageSize)
+            users = await _userManager.Users
+                .Where(x => x.IsActive || showInactiveUsers)
+                .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new Page<UserDto>()
+            return new Page<UserDto>
             {
                 CurrentPage = currentPage,
                 PageSize = pageSize,
-                TotalItems = _userManager.Users.Count(x => x.IsActive),
+                TotalItems = users.Count,
                 Content = await GetUserDtosAsync(users)
             };
         }
 
-        return new Page<UserDto>()
+        users = (await SearchUsersAsync(searchString, showInactiveUsers)).ToList();
+
+        return new Page<UserDto>
         {
             CurrentPage = currentPage,
             PageSize = pageSize,
-            TotalItems = _userManager.Users.Count(x => x.IsActive),
-            Content = await SearchUsersAsync(searchString)
+            TotalItems = users.Count,
+            Content = await GetUserDtosAsync(users)
         };
     }
 
@@ -187,46 +170,28 @@ public class UserService : IUserService
         return userDto;
     }
 
-    private async Task<IList<UserDto>> SearchUsersAsync(string searchString)
+    private async Task<IList<User>> SearchUsersAsync(string searchString, bool showInactiveUsers)
     {
         var users = new List<User>();
         var search = searchString.Replace(" ", "");
-        var usersFullName =
-            await _userManager.Users.Where(x => (x.FirstName + x.LastName).Contains(search)).ToListAsync();
+        var usersByFullName =
+            await _userManager.Users
+                .Where(x =>
+                    (x.IsActive || showInactiveUsers) &&
+                    (x.FirstName + x.LastName).Contains(search) ||
+                    (x.LastName + x.FirstName).Contains(search))
+                .ToListAsync();
 
-        if (usersFullName != null)
-        {
-            users.AddRange(usersFullName);
-        }
+        users.AddRange(usersByFullName);
 
-        var usersLastName = await _userManager.Users.Where(x => x.LastName.Contains(searchString)).ToListAsync();
-        var lastName = usersLastName.Except(usersFullName);
-
-        if (lastName != null)
-        {
-            users.AddRange(lastName);
-        }
-
-        var usersFirtsNameDto = await _userManager.Users.Where(x => x.FirstName.Contains(searchString))
-            .ToListAsync();
-        var usersFirtsName = usersFirtsNameDto.Except(lastName);
-
-        if (usersFirtsName != null)
-        {
-            users.AddRange(usersFirtsName);
-        }
-
-        var usersUserNameDto = await _userManager.Users
-            .Where(x => x.UserName.Contains(searchString))
+        var usersByUserName = await _userManager.Users
+            .Where(x =>
+                (x.IsActive || showInactiveUsers) &&
+                x.UserName.Contains(search))
             .ToListAsync();
 
-        var usersUserName = usersUserNameDto.Except(usersFirtsName);
+        users.AddRange(usersByUserName.Except(usersByFullName));
 
-        if (usersUserName != null)
-        {
-            users.AddRange(usersUserName);
-        }
-
-        return await GetUserDtosAsync(users);
+        return users;
     }
 }

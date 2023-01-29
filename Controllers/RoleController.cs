@@ -54,7 +54,7 @@ namespace InventoryControl.Controllers
                 return Ok(new Response<List<string>>
                 {
                     IsSuccess = true,
-                    Data = await _roleManager.Roles.Select(x=>x.Name).ToListAsync()
+                    Data = await _roleManager.Roles.Select(x => x.Name).ToListAsync()
                 });
             }
 

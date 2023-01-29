@@ -5,7 +5,11 @@ namespace InventoryControl.Services.Contracts;
 
 public interface IUserService
 {
-    public Task<Page<UserDto>> GetUsersAsync(string? searchString, bool showInActiveUsers, int currentPage, int pageSize);
+    public Task<Page<UserDto>> GetUsersAsync(
+        string? searchString,
+        bool showInactiveUsers,
+        int currentPage,
+        int pageSize);
 
     public Task<UserDto?> GetUserAsync(string? userName);
 
