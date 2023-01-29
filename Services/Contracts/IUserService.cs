@@ -1,10 +1,15 @@
-﻿using InventoryControl.Models;
+﻿using InventoryControl.Data.Entities;
+using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 
 public interface IUserService
 {
-    public Task<Page<UserDto>> GetUsersAsync(int currentPage, int pageSize);
+    public Task<Page<UserDto>> GetUsersAsync(
+        string? searchString,
+        bool showInactiveUsers,
+        int currentPage,
+        int pageSize);
 
     public Task<UserDto?> GetUserAsync(string? userName);
 

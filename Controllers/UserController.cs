@@ -20,11 +20,19 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("list")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> GetUsersAsync(int? currentPage = 1, int? pageSize = 20)
+        public async Task<IActionResult> GetUsersAsync(
+            string? searchString,
+            bool showInactiveUsers,
+            int? currentPage = 1,
+            int? pageSize = 20)
         {
             try
             {
-                var result = await _userService.GetUsersAsync(currentPage!.Value, pageSize!.Value);
+                var result = await _userService.GetUsersAsync(
+                    searchString,
+                    showInactiveUsers,
+                    currentPage!.Value,
+                    pageSize!.Value);
 
                 return Ok(new Response<Page<UserDto>>()
                 {
