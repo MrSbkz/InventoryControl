@@ -65,6 +65,10 @@ public class DeviceService : IDeviceService
                 ModuleSize = 10
             };
             var fileName = device.Id + ".png";
+            if (!Directory.Exists("Images"))
+            {
+                Directory.CreateDirectory("Images");
+            }
             var path = "Images/" + fileName;
             var link = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
             encoder.Encode(link);
