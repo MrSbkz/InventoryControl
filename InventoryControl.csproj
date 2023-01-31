@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -46,10 +46,6 @@
         <PackageReference Include="QRCodeEncoderLibrary" Version="2.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
         <PackageReference Include="ZXing.Net" Version="0.16.8" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Images" />
     </ItemGroup>
 
 </Project>
