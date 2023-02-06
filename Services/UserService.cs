@@ -42,7 +42,7 @@ public class UserService : IUserService
             };
         }
 
-        users = (await SearchUsersAsync(searchString, showInactiveUsers)).ToList();
+        users = (await SearchUsersAsync(searchString, showInactiveUsers, currentPage, pageSize)).ToList();
 
         return new Page<UserDto>
         {
@@ -170,7 +170,8 @@ public class UserService : IUserService
         return userDto;
     }
 
-    private async Task<IList<User>> SearchUsersAsync(string searchString, bool showInactiveUsers)
+    private async Task<IList<User>> SearchUsersAsync(string searchString, bool showInactiveUsers, int currentPage,
+        int pageSize)
     {
         var users = new List<User>();
         var search = searchString.Replace(" ", "");
@@ -180,6 +181,8 @@ public class UserService : IUserService
                     (x.IsActive || showInactiveUsers) &&
                     (x.FirstName + x.LastName).Contains(search) ||
                     (x.LastName + x.FirstName).Contains(search))
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
         users.AddRange(usersByFullName);
@@ -188,6 +191,8 @@ public class UserService : IUserService
             .Where(x =>
                 (x.IsActive || showInactiveUsers) &&
                 x.UserName.Contains(search))
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         users.AddRange(usersByUserName.Except(usersByFullName));
