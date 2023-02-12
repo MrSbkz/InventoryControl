@@ -24,32 +24,14 @@ public class UserService : IUserService
         int currentPage,
         int pageSize)
     {
-        List<User> users;
-        if (string.IsNullOrEmpty(searchString))
-        {
-            users = await _userManager.Users
-                .Where(x => x.IsActive || showInactiveUsers)
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return new Page<UserDto>
-            {
-                CurrentPage = currentPage,
-                PageSize = pageSize,
-                TotalItems = users.Count,
-                Content = await GetUserDtosAsync(users)
-            };
-        }
-
-        users = (await SearchUsersAsync(searchString, showInactiveUsers, currentPage, pageSize)).ToList();
+        var users  = await SearchUsersAsync(searchString, showInactiveUsers);
 
         return new Page<UserDto>
         {
             CurrentPage = currentPage,
             PageSize = pageSize,
             TotalItems = users.Count,
-            Content = await GetUserDtosAsync(users)
+            Content = await GetUserDtosAsync(users.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList())
         };
     }
 
@@ -170,19 +152,16 @@ public class UserService : IUserService
         return userDto;
     }
 
-    private async Task<IList<User>> SearchUsersAsync(string searchString, bool showInactiveUsers, int currentPage,
-        int pageSize)
+    private async Task<IList<User>> SearchUsersAsync(string? searchString, bool showInactiveUsers)
     {
         var users = new List<User>();
-        var search = searchString.Replace(" ", "");
+        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
         var usersByFullName =
             await _userManager.Users
                 .Where(x =>
                     (x.IsActive || showInactiveUsers) &&
-                    (x.FirstName + x.LastName).Contains(search) ||
-                    (x.LastName + x.FirstName).Contains(search))
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize)
+                    ((x.FirstName + x.LastName).Contains(search) ||
+                    (x.LastName + x.FirstName).Contains(search)))
                 .ToListAsync();
 
         users.AddRange(usersByFullName);
@@ -191,8 +170,6 @@ public class UserService : IUserService
             .Where(x =>
                 (x.IsActive || showInactiveUsers) &&
                 x.UserName.Contains(search))
-            .Skip((currentPage - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync();
 
         users.AddRange(usersByUserName.Except(usersByFullName));
