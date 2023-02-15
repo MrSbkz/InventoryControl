@@ -40,35 +40,31 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
+        List<Device> devices;
         if (string.IsNullOrEmpty(searchString))
         {
-            var devices = await _appContext.Devices
+            devices = await _appContext.Devices
                 .Include(x => x.User)
-                .Where(showDecommissionDevice
-                    ? (x => x.DecommissionDate != null || x.DecommissionDate == null)
-                    : x => x.DecommissionDate == null)
-                .Skip((currentPage - 1) * pageSize).Take(pageSize)
+                .Where(x => x.DecommissionDate == null || showDecommissionDevice)
                 .ToListAsync();
 
             return new Page<DeviceDto>()
             {
                 CurrentPage = currentPage,
                 PageSize = pageSize,
-                TotalItems = _appContext.Devices.Count(x => x.DecommissionDate == null),
-                Content = _mapper.Map<IList<DeviceDto>>(devices)
+                TotalItems = devices.Count,
+                Content = _mapper.Map<IList<DeviceDto>>(devices.Skip((currentPage - 1) * pageSize).Take(pageSize))
             };
         }
 
+        devices = (await SearchDevices(searchString, showDecommissionDevice)).ToList();
         return new Page<DeviceDto>()
         {
             CurrentPage = currentPage,
             PageSize = pageSize,
-            TotalItems = _appContext.Devices.Count(x => x.DecommissionDate == null),
-            Content = _mapper.Map<IList<DeviceDto>>(SearchDevices(
-                searchString,
-                showDecommissionDevice,
-                currentPage,
-                pageSize))
+            TotalItems = devices.Count,
+            Content = _mapper.Map<IList<DeviceDto>>(devices.Skip((currentPage - 1) * pageSize).Take(pageSize)
+                .ToList())
         };
     }
 
@@ -194,54 +190,40 @@ public class DeviceService : IDeviceService
         return "Device decommissioned";
     }
 
-    private async Task<IList<Device>> SearchDevices(
-        string searchString,
-        bool showDecommissionDevice,
-        int currentPage,
-        int pageSize)
+    private async Task<IList<Device>> SearchDevices(string searchString, bool showDecommissionDevice)
+
     {
-        var devicesSearch = new List<Device>();
+        var devices = new List<Device>();
         var search = searchString.Replace(" ", "");
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
-                (showDecommissionDevice
-                    ? (x.DecommissionDate != null || x.DecommissionDate == null)
-                    : x.DecommissionDate == null) &&
+                (x.DecommissionDate == null || showDecommissionDevice) &&
                 (x.Name.Contains(search)))
-            .Skip((currentPage - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-        devicesSearch.AddRange(devicesByName);
+        devices.AddRange(devicesByName);
 
         var devicesByAssignedToUserName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
-                x.User != null &&
-                (showDecommissionDevice
-                    ? (x.DecommissionDate != null || x.DecommissionDate == null)
-                    : x.DecommissionDate == null) &&
+                (x.DecommissionDate == null || showDecommissionDevice) &&
                 (x.User.UserName.Contains(search)))
-            .Skip((currentPage - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-        devicesSearch.AddRange(devicesByAssignedToUserName.Except(devicesByName));
+        devices.AddRange(devicesByAssignedToUserName.Except(devicesByName));
 
         var devicesByAssignedToFullName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
-                x.User != null &&
-                (showDecommissionDevice
-                    ? (x.DecommissionDate != null || x.DecommissionDate == null)
-                    : x.DecommissionDate == null) &&
+                (x.DecommissionDate == null || showDecommissionDevice) &&
                 ((x.User.FirstName + x.User.LastName).Contains(search) ||
                  (x.User.LastName + x.User.FirstName).Contains(search)))
-            .Skip((currentPage - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
-        devicesSearch.AddRange(devicesByAssignedToFullName.Except(devicesByAssignedToUserName));
+        devices.AddRange(devicesByAssignedToFullName.Except(devicesByAssignedToUserName));
 
-        return devicesSearch;
+        return devices;
     }
 }

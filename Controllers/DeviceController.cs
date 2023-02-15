@@ -20,8 +20,11 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("list")]
         [Authorize(Roles = "accountant")]
-        public async Task<IActionResult> GetDevicesAsync(string? searchString, bool showDecommissionDevice,
-            int? currentPage = 1, int? pageSize = 20)
+        public async Task<IActionResult> GetDevicesAsync(
+            string? searchString,
+            bool showDecommissionDevice,
+            int? currentPage = 1,
+            int? pageSize = 20)
         {
             try
             {
