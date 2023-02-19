@@ -40,24 +40,9 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
-        List<Device> devices;
-        if (string.IsNullOrEmpty(searchString))
-        {
-            devices = await _appContext.Devices
-                .Include(x => x.User)
-                .Where(x => x.DecommissionDate == null || showDecommissionDevice)
-                .ToListAsync();
 
-            return new Page<DeviceDto>()
-            {
-                CurrentPage = currentPage,
-                PageSize = pageSize,
-                TotalItems = devices.Count,
-                Content = _mapper.Map<IList<DeviceDto>>(devices.Skip((currentPage - 1) * pageSize).Take(pageSize))
-            };
-        }
+        var devices = await SearchDevices(searchString, showDecommissionDevice);
 
-        devices = (await SearchDevices(searchString, showDecommissionDevice)).ToList();
         return new Page<DeviceDto>()
         {
             CurrentPage = currentPage,
@@ -194,7 +179,7 @@ public class DeviceService : IDeviceService
 
     {
         var devices = new List<Device>();
-        var search = searchString.Replace(" ", "");
+        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
