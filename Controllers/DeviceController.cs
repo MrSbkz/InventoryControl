@@ -20,11 +20,16 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Route("list")]
         [Authorize(Roles = "accountant")]
-        public async Task<IActionResult> GetDevicesAsync(int? currentPage = 1, int? pageSize = 20)
+        public async Task<IActionResult> GetDevicesAsync(
+            string? searchString,
+            bool showDecommissionDevice,
+            int? currentPage = 1,
+            int? pageSize = 20)
         {
             try
             {
-                var result = await _deviceService.GetDevicesAsync(currentPage!.Value, pageSize!.Value);
+                var result = await _deviceService.GetDevicesAsync(searchString, showDecommissionDevice,
+                    currentPage!.Value, pageSize!.Value);
 
                 return Ok(new Response<Page<DeviceDto>>()
                 {

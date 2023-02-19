@@ -34,18 +34,22 @@ public class DeviceService : IDeviceService
         _configuration = configuration;
     }
 
-    public async Task<Page<DeviceDto>> GetDevicesAsync(int currentPage, int pageSize)
+    public async Task<Page<DeviceDto>> GetDevicesAsync(
+        string searchString,
+        bool showDecommissionDevice,
+        int currentPage,
+        int pageSize)
     {
-        var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.DecommissionDate == null)
-            .Skip((currentPage - 1) * pageSize).Take(pageSize)
-            .ToListAsync();
+
+        var devices = await SearchDevices(searchString, showDecommissionDevice);
 
         return new Page<DeviceDto>()
         {
             CurrentPage = currentPage,
             PageSize = pageSize,
-            TotalItems = _appContext.Devices.Count(x => x.DecommissionDate == null),
-            Content = _mapper.Map<IList<DeviceDto>>(devices)
+            TotalItems = devices.Count,
+            Content = _mapper.Map<IList<DeviceDto>>(devices.Skip((currentPage - 1) * pageSize).Take(pageSize)
+                .ToList())
         };
     }
 
@@ -173,5 +177,42 @@ public class DeviceService : IDeviceService
         }
 
         return "Device decommissioned";
+    }
+
+    private async Task<IList<Device>> SearchDevices(string searchString, bool showDecommissionDevice)
+
+    {
+        var devices = new List<Device>();
+        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
+
+        var devicesByName = await _appContext.Devices
+            .Include(x => x.User)
+            .Where(x =>
+                (x.DecommissionDate == null || showDecommissionDevice) &&
+                (x.Name.Contains(search)))
+            .ToListAsync();
+
+        devices.AddRange(devicesByName);
+
+        var devicesByAssignedToUserName = await _appContext.Devices
+            .Include(x => x.User)
+            .Where(x =>
+                (x.DecommissionDate == null || showDecommissionDevice) &&
+                (x.User.UserName.Contains(search)))
+            .ToListAsync();
+
+        devices.AddRange(devicesByAssignedToUserName.Except(devicesByName));
+
+        var devicesByAssignedToFullName = await _appContext.Devices
+            .Include(x => x.User)
+            .Where(x =>
+                (x.DecommissionDate == null || showDecommissionDevice) &&
+                ((x.User.FirstName + x.User.LastName).Contains(search) ||
+                 (x.User.LastName + x.User.FirstName).Contains(search)))
+            .ToListAsync();
+
+        devices.AddRange(devicesByAssignedToFullName.Except(devicesByAssignedToUserName));
+
+        return devices;
     }
 }
