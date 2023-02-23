@@ -179,6 +179,11 @@ public class DeviceService : IDeviceService
         return "Device decommissioned";
     }
 
+    public async Task<HistoryPage> HistoryDevice(int id)
+    {
+        var device = await _appContext.Devices.FindAsync(id);
+    }
+
     private async Task<IList<Device>> SearchDevices(string searchString, bool showDecommissionDevice)
 
     {

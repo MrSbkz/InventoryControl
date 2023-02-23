@@ -22,4 +22,6 @@ public interface IDeviceService
     public Task<string> UpdateDeviceAsync(UpdateDeviceModel model);
 
     public Task<string> DecommissDeviceAsync(int id);
+    
+    public Task<HistoryPage> HistoryDevice(int id);
 }
