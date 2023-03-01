@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InventoryControl.Data;
 using InventoryControl.Data.Entities;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
@@ -11,11 +12,13 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
+    private readonly AppDbContext _appContext;
 
-    public UserService(UserManager<User> userManager, IMapper mapper)
+    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext)
     {
         _userManager = userManager;
         _mapper = mapper;
+        _appContext = appContext;
     }
 
     public async Task<Page<UserDto>> GetUsersAsync(
@@ -24,7 +27,7 @@ public class UserService : IUserService
         int currentPage,
         int pageSize)
     {
-        var users  = await SearchUsersAsync(searchString, showInactiveUsers);
+        var users = await SearchUsersAsync(searchString, showInactiveUsers);
 
         return new Page<UserDto>
         {
@@ -113,6 +116,8 @@ public class UserService : IUserService
         if (user.IsActive)
         {
             user.IsActive = false;
+            var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.UserId == user.Id).ToListAsync();
+            InActiveDevice(devices);
             await _userManager.UpdateAsync(user);
             return "User got inactive";
         }
@@ -155,13 +160,13 @@ public class UserService : IUserService
     private async Task<IList<User>> SearchUsersAsync(string? searchString, bool showInactiveUsers)
     {
         var users = new List<User>();
-        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
+        var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
         var usersByFullName =
             await _userManager.Users
                 .Where(x =>
                     (x.IsActive || showInactiveUsers) &&
                     ((x.FirstName + x.LastName).Contains(search) ||
-                    (x.LastName + x.FirstName).Contains(search)))
+                     (x.LastName + x.FirstName).Contains(search)))
                 .ToListAsync();
 
         users.AddRange(usersByFullName);
@@ -175,5 +180,15 @@ public class UserService : IUserService
         users.AddRange(usersByUserName.Except(usersByFullName));
 
         return users;
+    }
+
+    private void InActiveDevice(List<Device> devices)
+    {
+        foreach (var device in devices)
+        {
+            device.User = null;
+            device.UserId = null;
+            _appContext.Devices.Update(device);
+        }
     }
 }
