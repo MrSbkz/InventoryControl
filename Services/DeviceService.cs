@@ -92,7 +92,7 @@ public class DeviceService : IDeviceService
 
     public async Task<IList<Employee>> GetEmployeesAsync()
     {
-        var users = await _userManager.Users.ToListAsync();
+        var users = await _userManager.Users.Where(x=>x.IsActive).ToListAsync();
         return _mapper.Map<IList<Employee>>(users).OrderBy(x => x.FullName).ToList();
     }
 
