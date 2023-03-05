@@ -29,7 +29,6 @@ namespace InventoryControl.Data
             DeviceConfiguration.Create(builder);
             DeviceHistoryConfiguration.Create(builder);
             InventoryConfiguration.Create(builder);
-            TicketConfiguration.Create(builder);
         }
     }
 }

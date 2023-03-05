@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data.Configurations
 {
-    public class InventoryConfiguration
+    public static class InventoryConfiguration
     {
         public static void Create(ModelBuilder builder)
         {
