@@ -162,7 +162,7 @@ namespace InventoryControl.Controllers
             {
                 var result = await _deviceService.UpdateDeviceAsync(model);
 
-                return Ok(new Response<string>()
+                return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
                     Data = result
@@ -186,7 +186,7 @@ namespace InventoryControl.Controllers
             {
                 var result = await _deviceService.DecommissDeviceAsync(deviceId);
 
-                return Ok(new Response<string>()
+                return Ok(new Response<DeviceDto>()
                 {
                     IsSuccess = true,
                     Data = result

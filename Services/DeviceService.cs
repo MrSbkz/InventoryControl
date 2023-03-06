@@ -136,14 +136,13 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
-    public async Task<string> UpdateDeviceAsync(UpdateDeviceModel model)
+    public async Task<DeviceDto> UpdateDeviceAsync(UpdateDeviceModel model)
     {
         var device = await _appContext.Devices.FindAsync(model.Id);
         if (device == null)
         {
             throw new Exception("Device is not found");
         }
-
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
             device.UserId = null;
@@ -158,15 +157,15 @@ public class DeviceService : IDeviceService
         _appContext.Devices.Update(device);
 
         await _appContext.SaveChangesAsync();
-        return "Device update successfully!";
+        return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(model.Id));
     }
 
-    public async Task<string> DecommissDeviceAsync(int id)
+    public async Task<DeviceDto> DecommissDeviceAsync(int id)
     {
         var device = await _appContext.Devices.FindAsync(id);
         if (device?.DecommissionDate != null)
         {
-            return "Device already decommissioned";
+            throw new Exception( "Device already decommissioned");
         }
 
         if (device != null)
@@ -176,7 +175,7 @@ public class DeviceService : IDeviceService
             await _appContext.SaveChangesAsync();
         }
 
-        return "Device decommissioned";
+        return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
     
 

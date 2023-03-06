@@ -19,8 +19,8 @@ public interface IDeviceService
 
     public Task<DeviceDto> AddDeviceAsync(AddDeviceModel model);
 
-    public Task<string> UpdateDeviceAsync(UpdateDeviceModel model);
+    public Task<DeviceDto> UpdateDeviceAsync(UpdateDeviceModel model);
 
-    public Task<string> DecommissDeviceAsync(int id);
+    public Task<DeviceDto> DecommissDeviceAsync(int id);
     
 }
