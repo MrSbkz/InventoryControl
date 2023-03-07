@@ -23,7 +23,7 @@ namespace InventoryControl.Controllers
         public async Task<IActionResult> GetDevicesAsync(
             string? searchString,
             bool showDecommissionDevice,
-            bool showInActiveDevice,
+            bool showUnassignedDevices,
             int? currentPage = 1,
             int? pageSize = 20)
         {
@@ -32,7 +32,7 @@ namespace InventoryControl.Controllers
                 var result = await _deviceService.GetDevicesAsync(
                     searchString,
                     showDecommissionDevice,
-                    showInActiveDevice,
+                    showUnassignedDevices,
                     currentPage!.Value, pageSize!.Value);
 
                 return Ok(new Response<Page<DeviceDto>>()

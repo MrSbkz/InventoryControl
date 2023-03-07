@@ -37,11 +37,11 @@ public class DeviceService : IDeviceService
     public async Task<Page<DeviceDto>> GetDevicesAsync(
         string searchString,
         bool showDecommissionDevice,
-        bool showInActiveDevice,
+        bool showUnassignedDevices,
         int currentPage,
         int pageSize)
     {
-        var devices = await SearchDevices(searchString, showDecommissionDevice, showInActiveDevice);
+        var devices = await SearchDevices(searchString, showDecommissionDevice, showUnassignedDevices);
 
         return new Page<DeviceDto>()
         {
@@ -183,7 +183,7 @@ public class DeviceService : IDeviceService
     private async Task<IList<Device>> SearchDevices(
         string searchString,
         bool showDecommissionDevice,
-        bool showInActiveDevice)
+        bool showUnassignedDevices)
 
     {
         var devices = new List<Device>();
@@ -193,7 +193,7 @@ public class DeviceService : IDeviceService
             .Include(x => x.User)
             .Where(x =>
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showInActiveDevice) &&
+                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 (x.Name.Contains(search)))
             .ToListAsync();
 
@@ -203,7 +203,7 @@ public class DeviceService : IDeviceService
             .Include(x => x.User)
             .Where(x =>
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showInActiveDevice) &&
+                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 (x.User.UserName.Contains(search)))
             .ToListAsync();
 
@@ -213,7 +213,7 @@ public class DeviceService : IDeviceService
             .Include(x => x.User)
             .Where(x =>
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showInActiveDevice) &&
+                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 ((x.User.FirstName + x.User.LastName).Contains(search) ||
                  (x.User.LastName + x.User.FirstName).Contains(search)))
             .ToListAsync();
