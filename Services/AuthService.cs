@@ -24,7 +24,7 @@ namespace InventoryControl.Services
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
 
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if ((user != null && user.IsActive) && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 return await GetToken(user);
             }
