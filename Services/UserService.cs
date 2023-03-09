@@ -24,7 +24,7 @@ public class UserService : IUserService
         int currentPage,
         int pageSize)
     {
-        var users  = await SearchUsersAsync(searchString, showInactiveUsers);
+        var users = await SearchUsersAsync(searchString, showInactiveUsers);
 
         return new Page<UserDto>
         {
@@ -155,13 +155,13 @@ public class UserService : IUserService
     private async Task<IList<User>> SearchUsersAsync(string? searchString, bool showInactiveUsers)
     {
         var users = new List<User>();
-        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
+        var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
         var usersByFullName =
             await _userManager.Users
                 .Where(x =>
                     (x.IsActive || showInactiveUsers) &&
                     ((x.FirstName + x.LastName).Contains(search) ||
-                    (x.LastName + x.FirstName).Contains(search)))
+                     (x.LastName + x.FirstName).Contains(search)))
                 .ToListAsync();
 
         users.AddRange(usersByFullName);
