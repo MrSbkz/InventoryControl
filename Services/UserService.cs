@@ -117,7 +117,7 @@ public class UserService : IUserService
         {
             user.IsActive = false;
             var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.UserId == user.Id).ToListAsync();
-            UnassignedDevices(devices);
+            GetUnassignedDevices(devices);
             await _userManager.UpdateAsync(user);
             return "User got inactive";
         }
@@ -182,7 +182,7 @@ public class UserService : IUserService
         return users;
     }
 
-    private void UnassignedDevices(List<Device> devices)
+    private void GetUnassignedDevices(List<Device> devices)
     {
         foreach (var device in devices)
         {
