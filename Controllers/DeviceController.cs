@@ -182,9 +182,11 @@ namespace InventoryControl.Controllers
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> DecommissDeviceAsync(int deviceId)
         {
+            
             try
             {
-                var result = await _deviceService.DecommissDeviceAsync(deviceId);
+                var userName = HttpContextHelper.GetUserFromContext(HttpContext);
+                var result = await _deviceService.DecommissDeviceAsync(deviceId,userName);
 
                 return Ok(new Response<DeviceDto>()
                 {

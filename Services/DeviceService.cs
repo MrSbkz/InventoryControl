@@ -19,23 +19,19 @@ public class DeviceService : IDeviceService
     private readonly UserManager<User> _userManager;
     private readonly IFileProvider _fileProvider;
     private readonly IConfiguration _configuration;
-    private readonly DeviceHistoryAction _historyAction;
-
 
     public DeviceService(
         AppDbContext appContext,
         IMapper mapper,
         UserManager<User> userManager,
         IFileProvider fileProvider,
-        IConfiguration configuration,
-        DeviceHistoryAction historyAction)
+        IConfiguration configuration)
     {
         _appContext = appContext;
         _mapper = mapper;
         _userManager = userManager;
         _fileProvider = fileProvider;
         _configuration = configuration;
-        _historyAction = historyAction;
     }
 
     public async Task<Page<DeviceDto>> GetDevicesAsync(
@@ -114,6 +110,8 @@ public class DeviceService : IDeviceService
             };
             await _appContext.Inventories.AddAsync(inventory);
             await _appContext.SaveChangesAsync();
+            
+            await AddDeviceHistory(DeviceHistoryAction.InventorizeBy, user, device);
             return "Inventory is successfully ";
         }
 
@@ -127,16 +125,18 @@ public class DeviceService : IDeviceService
             throw new Exception("User is not found");
         }
 
+        var user = await _userManager.FindByNameAsync(model.UserName);
         var device = new Device
         {
             Name = model.Name,
             RegisterDate = DateTime.Now,
-            UserId = (await _userManager.FindByNameAsync(model.UserName)).Id,
+            UserId = user.Id,
             DecommissionDate = null,
         };
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
 
+        await AddDeviceHistory(DeviceHistoryAction.AssignedTo, user, device);
         return _mapper.Map<DeviceDto>(device);
     }
 
@@ -154,7 +154,9 @@ public class DeviceService : IDeviceService
         }
         else
         {
-            device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
+            var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            device.UserId = user.Id;
+            await AddDeviceHistory(DeviceHistoryAction.AssignedTo, user, device);
         }
 
         device.Name = model.Name;
@@ -165,7 +167,7 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(model.Id));
     }
 
-    public async Task<DeviceDto> DecommissDeviceAsync(int id)
+    public async Task<DeviceDto> DecommissDeviceAsync(int id, string userName)
     {
         var device = await _appContext.Devices.FindAsync(id);
         if (device?.DecommissionDate != null)
@@ -179,7 +181,10 @@ public class DeviceService : IDeviceService
             _appContext.Devices.Update(device);
             await _appContext.SaveChangesAsync();
         }
-
+        
+        var user = await _userManager.FindByNameAsync(userName);
+        await AddDeviceHistory(DeviceHistoryAction.DecommissionedBy, user, device);
+        
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
 
@@ -221,14 +226,14 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistory(string action, string userId, DeviceDto device)
+    private async Task AddDeviceHistory(string action, User user, Device device)
     {
         var history = new DeviceHistory
         {
-            Action = string.Format(action, device.AssignedTo),
+            Action = string.Format(action, user.FirstName + " " + user.LastName),
             DeviceId = device.Id,
             CreatedDate = DateTime.Now,
-            UserId = userId
+            UserId = user.Id
         };
         _appContext.DeviceHistories.Update(history);
         await _appContext.SaveChangesAsync();
