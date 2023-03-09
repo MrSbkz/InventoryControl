@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InventoryControl.Data;
 using InventoryControl.Data.Entities;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
@@ -11,13 +12,14 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
-    private readonly IDeviceService _deviceService;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, IDeviceService deviceService)
+    private readonly AppDbContext _appContext;
+
+    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext)
     {
         _userManager = userManager;
         _mapper = mapper;
-        _deviceService = deviceService;
+        _appContext = appContext;
     }
 
     public async Task<Page<UserDto>> GetUsersAsync(
@@ -128,6 +130,8 @@ public class UserService : IUserService
         if (user.IsActive)
         {
             user.IsActive = false;
+            var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.UserId == user.Id).ToListAsync();
+            UnassignDevices(devices);
             await _userManager.UpdateAsync(user);
             return "User got inactive";
         }
@@ -190,5 +194,15 @@ public class UserService : IUserService
         users.AddRange(usersByUserName.Except(usersByFullName));
 
         return users;
+    }
+
+    private void UnassignDevices(List<Device> devices)
+    {
+        foreach (var device in devices)
+        {
+            device.User = null;
+            device.UserId = null;
+            _appContext.Devices.Update(device);
+        }
     }
 }

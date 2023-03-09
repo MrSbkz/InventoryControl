@@ -7,6 +7,7 @@ public interface IDeviceService
     public Task<Page<DeviceDto>> GetDevicesAsync(
         string searchString,
         bool showDecommissionDevice,
+        bool showUnassignedDevices,
         int currentPage,
         int pageSize);
 
