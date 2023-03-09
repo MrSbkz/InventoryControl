@@ -2,9 +2,9 @@
 
 namespace InventoryControl.Models;
 
-public class DeivceOfUser
+public class UserInfoDto
 {
     public UserDto User { get; set; }
 
-    public Page<DeviceDto> Device { get; set; }
+    public Page<DeviceDto> Devices { get; set; }
 }

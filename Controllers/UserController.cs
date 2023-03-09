@@ -66,7 +66,7 @@ namespace InventoryControl.Controllers
                     showDecommissionDevice,
                     currentPage!.Value,
                     pageSize!.Value);
-                return Ok(new Response<DeivceOfUser>()
+                return Ok(new Response<UserInfoDto>()
                 {
                     IsSuccess = true,
                     Data = result
