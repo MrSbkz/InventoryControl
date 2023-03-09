@@ -11,11 +11,13 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
+    private readonly IDeviceService _device;
 
-    public UserService(UserManager<User> userManager, IMapper mapper)
+    public UserService(UserManager<User> userManager, IMapper mapper, IDeviceService device)
     {
         _userManager = userManager;
         _mapper = mapper;
+        _device = device;
     }
 
     public async Task<Page<UserDto>> GetUsersAsync(
@@ -35,12 +37,25 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserDto?> GetUserAsync(string? userName)
+    public async Task<DeivceOfUser?> GetUserAsync(
+        string? userName,
+        bool showDecommissionDevice,
+        int currentPage,
+        int pageSize)
     {
         var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            return await GetUserDtoAsync(user);
+            var device = await _device.GetDevicesAsync(user.UserName,
+                showDecommissionDevice,
+                currentPage,
+                pageSize);
+
+            return new DeivceOfUser()
+            {
+                User = await GetUserDtoAsync(user),
+                Device = device
+            };
         }
 
         throw new Exception("User is not found");

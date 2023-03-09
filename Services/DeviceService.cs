@@ -40,7 +40,6 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
-
         var devices = await SearchDevices(searchString, showDecommissionDevice);
 
         return new Page<DeviceDto>()
@@ -73,6 +72,7 @@ public class DeviceService : IDeviceService
             {
                 Directory.CreateDirectory("Images");
             }
+
             var path = "Images/" + fileName;
             var link = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
             encoder.Encode(link);
@@ -92,7 +92,7 @@ public class DeviceService : IDeviceService
 
     public async Task<IList<Employee>> GetEmployeesAsync()
     {
-        var users = await _userManager.Users.Where(x=>x.IsActive).ToListAsync();
+        var users = await _userManager.Users.Where(x => x.IsActive).ToListAsync();
         return _mapper.Map<IList<Employee>>(users).OrderBy(x => x.FullName).ToList();
     }
 
@@ -183,7 +183,7 @@ public class DeviceService : IDeviceService
 
     {
         var devices = new List<Device>();
-        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
+        var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)

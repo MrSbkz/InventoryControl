@@ -4,7 +4,8 @@ namespace InventoryControl.Services.Contracts;
 
 public interface IDeviceService
 {
-    public Task<Page<DeviceDto>> GetDevicesAsync(string searchString,
+    public Task<Page<DeviceDto>> GetDevicesAsync(
+        string searchString,
         bool showDecommissionDevice,
         int currentPage,
         int pageSize);
