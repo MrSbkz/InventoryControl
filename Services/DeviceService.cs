@@ -19,19 +19,23 @@ public class DeviceService : IDeviceService
     private readonly UserManager<User> _userManager;
     private readonly IFileProvider _fileProvider;
     private readonly IConfiguration _configuration;
+    private readonly DeviceHistoryAction _historyAction;
+
 
     public DeviceService(
         AppDbContext appContext,
         IMapper mapper,
         UserManager<User> userManager,
         IFileProvider fileProvider,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        DeviceHistoryAction historyAction)
     {
         _appContext = appContext;
         _mapper = mapper;
         _userManager = userManager;
         _fileProvider = fileProvider;
         _configuration = configuration;
+        _historyAction = historyAction;
     }
 
     public async Task<Page<DeviceDto>> GetDevicesAsync(
@@ -40,7 +44,6 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
-
         var devices = await SearchDevices(searchString, showDecommissionDevice);
 
         return new Page<DeviceDto>()
@@ -73,6 +76,7 @@ public class DeviceService : IDeviceService
             {
                 Directory.CreateDirectory("Images");
             }
+
             var path = "Images/" + fileName;
             var link = string.Format(_configuration.GetSection("QrBasePath").Value, device.Id);
             encoder.Encode(link);
@@ -143,6 +147,7 @@ public class DeviceService : IDeviceService
         {
             throw new Exception("Device is not found");
         }
+
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
             device.UserId = null;
@@ -165,7 +170,7 @@ public class DeviceService : IDeviceService
         var device = await _appContext.Devices.FindAsync(id);
         if (device?.DecommissionDate != null)
         {
-            throw new Exception( "Device already decommissioned");
+            throw new Exception("Device already decommissioned");
         }
 
         if (device != null)
@@ -177,13 +182,13 @@ public class DeviceService : IDeviceService
 
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
-    
+
 
     private async Task<IList<Device>> SearchDevices(string searchString, bool showDecommissionDevice)
 
     {
         var devices = new List<Device>();
-        var search = !string.IsNullOrEmpty(searchString ) ? searchString.Replace(" ", "") : string.Empty;
+        var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
@@ -216,8 +221,16 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private void AddDeviceHistory(string action)
+    private async Task AddDeviceHistory(string action, string userId, DeviceDto device)
     {
-        
+        var history = new DeviceHistory
+        {
+            Action = string.Format(action, device.AssignedTo),
+            DeviceId = device.Id,
+            CreatedDate = DateTime.Now,
+            UserId = userId
+        };
+        _appContext.DeviceHistories.Update(history);
+        await _appContext.SaveChangesAsync();
     }
 }
