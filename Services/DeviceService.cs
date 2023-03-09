@@ -215,4 +215,9 @@ public class DeviceService : IDeviceService
 
         return devices;
     }
+
+    private void AddDeviceHistory(string action)
+    {
+        
+    }
 }
