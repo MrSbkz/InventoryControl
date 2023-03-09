@@ -11,13 +11,13 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
-    private readonly IDeviceService _device;
+    private readonly IDeviceService _deviceService;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, IDeviceService device)
+    public UserService(UserManager<User> userManager, IMapper mapper, IDeviceService deviceService)
     {
         _userManager = userManager;
         _mapper = mapper;
-        _device = device;
+        _deviceService = deviceService;
     }
 
     public async Task<Page<UserDto>> GetUsersAsync(
@@ -46,7 +46,7 @@ public class UserService : IUserService
         var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            var device = await _device.GetDevicesAsync(user.UserName,
+            var device = await _deviceService.GetDevicesAsync(user.UserName,
                 showDecommissionDevice,
                 currentPage,
                 pageSize);
