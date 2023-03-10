@@ -53,6 +53,15 @@ public class DeviceService : IDeviceService
         };
     }
 
+    public async Task<IList<DeviceDto>> GetDevicesListAsync(
+        string searchString,
+        bool showDecommissionDevice,
+        bool showUnassignedDevices)
+    {
+        return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
+            showUnassignedDevices));
+        
+    }
     public async Task<DeviceDto> GetDeviceAsync(int id)
     {
         var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);

@@ -6,5 +6,5 @@ public class UserInfoDto
 {
     public UserDto User { get; set; }
 
-    public Page<DeviceDto> Devices { get; set; }
+    public IList<DeviceDto> Devices { get; set; }
 }

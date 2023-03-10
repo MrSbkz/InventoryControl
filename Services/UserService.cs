@@ -43,29 +43,27 @@ public class UserService : IUserService
 
     public async Task<UserInfoDto?> GetUserAsync(
         string? userName,
-        bool showDecommissionDevice,
-        int currentPage,
-        int pageSize)
+        bool showDecommissionDevice)
     {
         var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            var device = await _deviceService.GetDevicesAsync(user.UserName,
+            var devices = await _deviceService.GetDevicesListAsync(
+                user.UserName,
                 showDecommissionDevice,
-                false,
-                currentPage,
-                pageSize);
+                false);
 
             return new UserInfoDto()
             {
                 User = await GetUserDtoAsync(user),
-                Devices = device
+                Devices = devices
             };
         }
 
         throw new Exception("User is not found");
     }
 
+    
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
         if (_userManager.Users.Any(x => x.UserName == model.UserName))
