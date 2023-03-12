@@ -12,14 +12,16 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
+    private readonly IDeviceService _deviceService;
 
     private readonly AppDbContext _appContext;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext)
+    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext, IDeviceService deviceService)
     {
         _userManager = userManager;
         _mapper = mapper;
         _appContext = appContext;
+        _deviceService = deviceService;
     }
 
     public async Task<Page<UserDto>> GetUsersAsync(
@@ -39,30 +41,29 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<DeivceOfUser?> GetUserAsync(
+    public async Task<UserInfoDto?> GetUserAsync(
         string? userName,
-        bool showDecommissionDevice,
-        int currentPage,
-        int pageSize)
+        bool showDecommissionDevice)
     {
         var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            var device = await _deviceService.GetDevicesAsync(user.UserName,
+            var devices = await _deviceService.GetDevicesListAsync(
+                user.UserName,
                 showDecommissionDevice,
-                currentPage,
-                pageSize);
+                false);
 
-            return new DeivceOfUser()
+            return new UserInfoDto()
             {
                 User = await GetUserDtoAsync(user),
-                Device = device
+                Devices = devices
             };
         }
 
         throw new Exception("User is not found");
     }
 
+    
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
         if (_userManager.Users.Any(x => x.UserName == model.UserName))

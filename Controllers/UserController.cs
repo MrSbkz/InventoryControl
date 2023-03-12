@@ -53,9 +53,7 @@ namespace InventoryControl.Controllers
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetUserAsync(
-            bool showDecommissionDevice,
-            int? currentPage = 1,
-            int? pageSize = 20)
+            bool showDecommissionDevice)
         {
             try
             {
@@ -63,10 +61,8 @@ namespace InventoryControl.Controllers
                 
                 var result = await _userService.GetUserAsync(
                     userName,
-                    showDecommissionDevice,
-                    currentPage!.Value,
-                    pageSize!.Value);
-                return Ok(new Response<DeivceOfUser>()
+                    showDecommissionDevice);
+                return Ok(new Response<UserInfoDto>()
                 {
                     IsSuccess = true,
                     Data = result

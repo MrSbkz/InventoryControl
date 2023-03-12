@@ -11,11 +11,9 @@ public interface IUserService
         int currentPage,
         int pageSize);
 
-    public Task<DeivceOfUser?> GetUserAsync(
+    public Task<UserInfoDto?> GetUserAsync(
         string? userName,
-        bool showDecommissionDevice,
-        int currentPage,
-        int pageSize);
+        bool showDecommissionDevice);
 
     public Task<RegisterResponse> AddUserAsync(RegisterModel model);
 
