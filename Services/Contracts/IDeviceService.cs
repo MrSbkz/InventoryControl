@@ -1,4 +1,5 @@
-﻿using InventoryControl.Models;
+﻿using System.Collections;
+using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 
@@ -11,6 +12,11 @@ public interface IDeviceService
         int currentPage,
         int pageSize);
 
+    public Task<IList<DeviceDto>> GetDevicesListAsync(
+        string searchString,
+        bool showDecommissionDevice,
+        bool showUnassignedDevices);
+    
     public Task<DeviceDto> GetDeviceAsync(int id);
 
     public Task<IList<Employee>> GetEmployeesAsync();

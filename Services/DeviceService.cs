@@ -54,6 +54,15 @@ public class DeviceService : IDeviceService
         };
     }
 
+    public async Task<IList<DeviceDto>> GetDevicesListAsync(
+        string searchString,
+        bool showDecommissionDevice,
+        bool showUnassignedDevices)
+    {
+        return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
+            showUnassignedDevices));
+        
+    }
     public async Task<DeviceDto> GetDeviceAsync(int id)
     {
         var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
@@ -89,7 +98,7 @@ public class DeviceService : IDeviceService
             };
         }
 
-        throw new Exception("Device is not found");
+        throw new Exception("Devices is not found");
     }
 
     public async Task<IList<Employee>> GetEmployeesAsync()
@@ -117,7 +126,7 @@ public class DeviceService : IDeviceService
             return "Inventory is successfully ";
         }
 
-        throw new Exception("Device is not found");
+        throw new Exception("Devices is not found");
     }
 
     public async Task<IList<HistoryPage>> DeviceHistory(int deviceId)
@@ -154,7 +163,7 @@ public class DeviceService : IDeviceService
         var device = await _appContext.Devices.FindAsync(model.Id);
         if (device == null)
         {
-            throw new Exception("Device is not found");
+            throw new Exception("Devices is not found");
         }
 
         if (string.IsNullOrEmpty(model.AssignedTo))
@@ -181,7 +190,7 @@ public class DeviceService : IDeviceService
         var device = await _appContext.Devices.FindAsync(id);
         if (device?.DecommissionDate != null)
         {
-            throw new Exception("Device already decommissioned");
+            throw new Exception("Devices already decommissioned");
         }
 
         if (device != null)
