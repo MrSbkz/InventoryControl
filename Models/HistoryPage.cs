@@ -4,14 +4,8 @@ namespace InventoryControl.Models;
 
 public class HistoryPage
 {
-    public string Name { get; set; } = String.Empty;
+    public string Action { get; set; } = string.Empty;
     
-    public Employee AssignedTo { get; set; } 
+    public DateTime? CreatedDate { get; set; }
 
-    public DateTime RegisterData { get; set; }
-
-    public List<Inventory>? Inventories { get; set; }
-
-    public DateTime? DecommissionDate { get; set; }
-    
 }

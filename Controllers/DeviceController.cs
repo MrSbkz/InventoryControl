@@ -71,6 +71,30 @@ namespace InventoryControl.Controllers
         }
 
         [HttpGet]
+        [Route("deviceHistory")]
+        [Authorize(Roles = "accountant")]
+        public async Task<IActionResult> GetDeviceHistoryAsync(int deviceId)
+        {
+            try
+            {
+                var result = await _deviceService.DeviceHistory(deviceId);
+                return Ok(new Response<IList<HistoryPage>>()
+                {
+                    IsSuccess = true,
+                    Data = result
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response<string>()
+                {
+                    IsSuccess = false,
+                    Errors = new List<string> { e.Message }
+                });
+            }
+        }
+
+        [HttpGet]
         [Route("employees")]
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> GetEmployeesAsync()
@@ -182,11 +206,10 @@ namespace InventoryControl.Controllers
         [Authorize(Roles = "accountant")]
         public async Task<IActionResult> DecommissDeviceAsync(int deviceId)
         {
-            
             try
             {
                 var userName = HttpContextHelper.GetUserFromContext(HttpContext);
-                var result = await _deviceService.DecommissDeviceAsync(deviceId,userName);
+                var result = await _deviceService.DecommissDeviceAsync(deviceId, userName);
 
                 return Ok(new Response<DeviceDto>()
                 {

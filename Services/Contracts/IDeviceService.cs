@@ -16,6 +16,7 @@ public interface IDeviceService
     public Task<QrCodeModel> GetQrCodeAsync(int id);
 
     public Task<string> InventoryAsync(int id, string name);
+    public Task<IList<HistoryPage>> DeviceHistory(int deviceId);
 
     public Task<DeviceDto> AddDeviceAsync(AddDeviceModel model);
 

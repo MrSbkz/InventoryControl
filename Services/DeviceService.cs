@@ -118,6 +118,13 @@ public class DeviceService : IDeviceService
         throw new Exception("Device is not found");
     }
 
+    public async Task<IList<HistoryPage>> DeviceHistory(int deviceId)
+    {
+        var history = await _appContext.DeviceHistories.Where(x => x.DeviceId == deviceId).ToListAsync();
+
+        return _mapper.Map<IList<HistoryPage>>(history);
+    }
+
     public async Task<DeviceDto> AddDeviceAsync(AddDeviceModel model)
     {
         if (!_userManager.Users.Any(x => x.UserName == model.UserName))
