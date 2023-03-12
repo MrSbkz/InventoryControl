@@ -26,7 +26,14 @@ namespace InventoryControl.Services
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                return await GetToken(user);
+                if (user.IsActive)
+                {
+                    return await GetToken(user);
+                }
+                else
+                {
+                    throw new Exception("User is not Active");
+                }
             }
             else
             {
