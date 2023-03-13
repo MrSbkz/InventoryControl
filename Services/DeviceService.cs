@@ -5,6 +5,7 @@ using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using QRCodeEncoderLibrary;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -61,8 +62,8 @@ public class DeviceService : IDeviceService
     {
         return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
             showUnassignedDevices));
-        
     }
+
     public async Task<DeviceDto> GetDeviceAsync(int id)
     {
         var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
@@ -173,11 +174,13 @@ public class DeviceService : IDeviceService
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, user, device);
             device.UserId = user.Id;
-            await AddDeviceHistory(DeviceHistoryAction.AssignedTo, user, device);
         }
 
+        await AddDeviceHistory(DeviceHistoryAction.UpdateDeviceName, device.User, device);
         device.Name = model.Name;
+
 
         _appContext.Devices.Update(device);
 
@@ -251,9 +254,29 @@ public class DeviceService : IDeviceService
 
     private async Task AddDeviceHistory(string action, User user, Device device)
     {
+        string actionString;
+
+        if (action == DeviceHistoryAction.UpdateDeviceName)
+        {
+            actionString = string.Format(action, device.Name, user.LastName);
+        }
+        else if (action == DeviceHistoryAction.UpdateAssignTo)
+        {
+            actionString = string.Format(
+                action,
+                device.User.FirstName + " " + device.User.LastName,
+                device.User.UserName,
+                user.FirstName + " " + user.LastName,
+                user.UserName);
+        }
+        else
+        {
+            actionString = string.Format(action, user.FirstName + " " + user.LastName, user.UserName);
+        }
+
         var history = new DeviceHistory
         {
-            Action = string.Format(action, user.FirstName + " " + user.LastName),
+            Action = actionString,
             DeviceId = device.Id,
             CreatedDate = DateTime.Now,
             UserId = user.Id
