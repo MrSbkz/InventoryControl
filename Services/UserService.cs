@@ -133,7 +133,7 @@ public class UserService : IUserService
         {
             user.IsActive = false;
             var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.UserId == user.Id).ToListAsync();
-            UnassignDevices(devices);
+            await UnassignDevices(devices);
             await _userManager.UpdateAsync(user);
             return "User got inactive";
         }

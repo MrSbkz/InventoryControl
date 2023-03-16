@@ -75,14 +75,14 @@ namespace InventoryControl.Controllers
         }
 
         [HttpGet]
-        [Route("deviceHistory")]
-        [Authorize(Roles = "accountant")]
+        [Route("device-history")]
+        [Authorize]
         public async Task<IActionResult> GetDeviceHistoryAsync(int deviceId)
         {
             try
             {
-                var result = await _deviceService.DeviceHistory(deviceId);
-                return Ok(new Response<IList<HistoryPage>>()
+                var result = await _deviceService.GetDeviceHistoryAsync(deviceId);
+                return Ok(new Response<IList<DeviceHistoryDto>>()
                 {
                     IsSuccess = true,
                     Data = result

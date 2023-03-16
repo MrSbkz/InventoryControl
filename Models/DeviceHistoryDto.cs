@@ -2,7 +2,7 @@
 
 namespace InventoryControl.Models;
 
-public class HistoryPage
+public class DeviceHistoryDto
 {
     public string Action { get; set; } = string.Empty;
     

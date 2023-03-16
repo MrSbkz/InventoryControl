@@ -5,7 +5,6 @@ using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using QRCodeEncoderLibrary;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -36,13 +35,13 @@ public class DeviceService : IDeviceService
     }
 
     public async Task<Page<DeviceDto>> GetDevicesAsync(
-        string searchString,
+        string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices,
         int currentPage,
         int pageSize)
     {
-        var devices = await SearchDevices(searchString, showDecommissionDevice, showUnassignedDevices);
+        var devices = await SearchDevicesAsync(searchString, showDecommissionDevice, showUnassignedDevices);
 
 
         return new Page<DeviceDto>()
@@ -60,7 +59,7 @@ public class DeviceService : IDeviceService
         bool showDecommissionDevice,
         bool showUnassignedDevices)
     {
-        return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
+        return _mapper.Map<IList<DeviceDto>>(await SearchDevicesAsync(searchString, showDecommissionDevice,
             showUnassignedDevices));
     }
 
@@ -112,34 +111,35 @@ public class DeviceService : IDeviceService
     {
         var device = await _appContext.Devices.FindAsync(id);
         var user = await _userManager.FindByNameAsync(name);
+
+        if (device == null)
+        {
+            throw new Exception("Devices is not found");
+        }
+        
         if (device.DecommissionDate != null)
         {
             throw new Exception("Cann't inventory decommission device!");
         }
-
-        if (device != null)
+        var inventory = new Inventory()
         {
-            var inventory = new Inventory()
-            {
-                CreatedBy = user,
-                InventoryDate = DateTime.Now,
-                DeviceId = device.Id
-            };
-            await _appContext.Inventories.AddAsync(inventory);
-            await _appContext.SaveChangesAsync();
+            CreatedBy = user,
+            InventoryDate = DateTime.Now,
+            DeviceId = device.Id
+        };
+        await _appContext.Inventories.AddAsync(inventory);
+        await _appContext.SaveChangesAsync();
 
-            await AddDeviceHistory(DeviceHistoryAction.InventorizeBy, user, device);
-            return "Inventory is successfully ";
-        }
+        await AddDeviceHistoryAsync(DeviceHistoryAction.InventoryBy, user, device);
+        return "Inventory is successfully ";
 
-        throw new Exception("Devices is not found");
     }
 
-    public async Task<IList<HistoryPage>> DeviceHistory(int deviceId)
+    public async Task<IList<DeviceHistoryDto>> GetDeviceHistoryAsync(int deviceId)
     {
         var history = await _appContext.DeviceHistories.Where(x => x.DeviceId == deviceId).ToListAsync();
 
-        return _mapper.Map<IList<HistoryPage>>(history);
+        return _mapper.Map<IList<DeviceHistoryDto>>(history);
     }
 
     public async Task<DeviceDto> AddDeviceAsync(AddDeviceModel model)
@@ -160,7 +160,7 @@ public class DeviceService : IDeviceService
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
 
-        await AddDeviceHistory(DeviceHistoryAction.AssignedTo, user, device);
+        await AddDeviceHistoryAsync(DeviceHistoryAction.AssignedTo, user, device);
         return _mapper.Map<DeviceDto>(device);
     }
 
@@ -174,19 +174,19 @@ public class DeviceService : IDeviceService
 
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, null, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, null, device);
             device.UserId = null;
         }
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             device.UserId = user.Id;
-            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, user, device);
         }
 
         if (device.Name != model.Name)
         {
-            await AddDeviceHistory(DeviceHistoryAction.UpdateDeviceName, device.User, device, model.Name);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateDeviceName, device.User, device, model.Name);
             device.Name = model.Name;
         }
 
@@ -207,17 +207,18 @@ public class DeviceService : IDeviceService
         if (device != null)
         {
             device.DecommissionDate = DateTime.Now;
+            device.UserId = null;
             _appContext.Devices.Update(device);
             await _appContext.SaveChangesAsync();
             var user = await _userManager.FindByNameAsync(userName);
-            await AddDeviceHistory(DeviceHistoryAction.DecommissionedBy, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.DecommissionedBy, user, device);
         }
 
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
-    
-    private async Task<IList<Device>> SearchDevices(
-        string searchString,
+
+    private async Task<IList<Device>> SearchDevicesAsync(
+        string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices)
 
@@ -259,7 +260,7 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistory(string action, User? user, Device? device, string oldName = "undefined")
+    private async Task AddDeviceHistoryAsync(string action, User? user, Device? device, string oldName = "")
     {
         string actionString;
 
@@ -267,7 +268,7 @@ public class DeviceService : IDeviceService
         {
             actionString = string.Format(action, device.Name, oldName);
         }
-        else if (action == DeviceHistoryAction.UpdateAssignTo)
+        else if (action == DeviceHistoryAction.UpdateAssigning)
         {
             if (user == null)
             {
