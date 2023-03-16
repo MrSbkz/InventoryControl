@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using InventoryControl.Data;
 using InventoryControl.Data.Entities;
+using InventoryControl.Enums;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using QRCodeEncoderLibrary;
