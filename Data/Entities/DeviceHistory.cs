@@ -6,13 +6,9 @@
 
         public string Action { get; set; } = string.Empty;
 
-        public string UserId { get; set; } = string.Empty;
-
         public DateTime? CreatedDate { get; set; }
 
         public int DeviceId { get; set; }
-
-        public User? User { get; set; }
 
         public Device? Device { get; set; }
         

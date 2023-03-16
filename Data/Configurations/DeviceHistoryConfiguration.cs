@@ -8,11 +8,6 @@ namespace InventoryControl.Data.Configurations
         public static void Create(ModelBuilder builder)
         {
             builder.Entity<DeviceHistory>()
-                .HasOne(x => x.User)
-                .WithMany()
-                .HasForeignKey(x => x.UserId);
-            
-            builder.Entity<DeviceHistory>()
                 .HasOne(x => x.Device)
                 .WithMany()
                 .HasForeignKey(x => x.DeviceId);
