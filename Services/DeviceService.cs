@@ -112,7 +112,7 @@ public class DeviceService : IDeviceService
     {
         var device = await _appContext.Devices.FindAsync(id);
         var user = await _userManager.FindByNameAsync(name);
-        if (device.DecommissionDate == null)
+        if (device.DecommissionDate != null)
         {
             throw new Exception("Cann't inventory decommission device!");
         }
