@@ -112,6 +112,11 @@ public class DeviceService : IDeviceService
     {
         var device = await _appContext.Devices.FindAsync(id);
         var user = await _userManager.FindByNameAsync(name);
+        if (device.DecommissionDate == null)
+        {
+            throw new Exception("Cann't inventory decommission device!");
+        }
+
         if (device != null)
         {
             var inventory = new Inventory()
@@ -161,7 +166,7 @@ public class DeviceService : IDeviceService
 
     public async Task<DeviceDto> UpdateDeviceAsync(UpdateDeviceModel model)
     {
-        var device = await _appContext.Devices.FindAsync(model.Id);
+        var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == model.Id);
         if (device == null)
         {
             throw new Exception("Devices is not found");
@@ -169,18 +174,21 @@ public class DeviceService : IDeviceService
 
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
+            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, null, device);
             device.UserId = null;
         }
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
-            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, user, device);
             device.UserId = user.Id;
+            await AddDeviceHistory(DeviceHistoryAction.UpdateAssignTo, user, device);
         }
 
-        await AddDeviceHistory(DeviceHistoryAction.UpdateDeviceName, device.User, device);
-        device.Name = model.Name;
-
+        if (device.Name != model.Name)
+        {
+            await AddDeviceHistory(DeviceHistoryAction.UpdateDeviceName, device.User, device, model.Name);
+            device.Name = model.Name;
+        }
 
         _appContext.Devices.Update(device);
 
@@ -207,8 +215,7 @@ public class DeviceService : IDeviceService
 
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
-
-
+    
     private async Task<IList<Device>> SearchDevices(
         string searchString,
         bool showDecommissionDevice,
@@ -252,22 +259,42 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistory(string action, User user, Device device)
+    private async Task AddDeviceHistory(string action, User? user, Device? device, string oldName = "undefined")
     {
         string actionString;
 
         if (action == DeviceHistoryAction.UpdateDeviceName)
         {
-            actionString = string.Format(action, device.Name, user.LastName);
+            actionString = string.Format(action, device.Name, oldName);
         }
         else if (action == DeviceHistoryAction.UpdateAssignTo)
         {
-            actionString = string.Format(
-                action,
-                device.User.FirstName + " " + device.User.LastName,
-                device.User.UserName,
-                user.FirstName + " " + user.LastName,
-                user.UserName);
+            if (user == null)
+            {
+                user = new User()
+                {
+                    UserName = string.Empty,
+                    FirstName = string.Empty,
+                    LastName = string.Empty
+                };
+            }
+
+            if (device.User == null)
+            {
+                device.User = new User()
+                {
+                    UserName = string.Empty,
+                    FirstName = string.Empty,
+                    LastName = string.Empty
+                };
+            }
+
+            actionString = string.Format(action, !string.IsNullOrEmpty(device.User.UserName)
+                    ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName + ")"
+                    : "no user",
+                !string.IsNullOrEmpty(user.UserName)
+                    ? user.FirstName + " " + user.LastName + "(" + device.User.UserName + ")"
+                    : "no user");
         }
         else
         {
@@ -277,9 +304,8 @@ public class DeviceService : IDeviceService
         var history = new DeviceHistory
         {
             Action = actionString,
-            DeviceId = device.Id,
+            DeviceId = device!.Id,
             CreatedDate = DateTime.Now,
-            UserId = user.Id
         };
         _appContext.DeviceHistories.Update(history);
         await _appContext.SaveChangesAsync();

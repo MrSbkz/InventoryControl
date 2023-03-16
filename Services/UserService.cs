@@ -16,7 +16,8 @@ public class UserService : IUserService
 
     private readonly AppDbContext _appContext;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext, IDeviceService deviceService)
+    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext,
+        IDeviceService deviceService)
     {
         _userManager = userManager;
         _mapper = mapper;
@@ -63,7 +64,7 @@ public class UserService : IUserService
         throw new Exception("User is not found");
     }
 
-    
+
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
         if (_userManager.Users.Any(x => x.UserName == model.UserName))
@@ -197,13 +198,17 @@ public class UserService : IUserService
         return users;
     }
 
-    private void UnassignDevices(List<Device> devices)
+    private async Task UnassignDevices(List<Device> devices)
     {
         foreach (var device in devices)
         {
-            device.User = null;
-            device.UserId = null;
-            _appContext.Devices.Update(device);
+            var model = new UpdateDeviceModel()
+            {
+                Id = device.Id,
+                Name = device.Name,
+                AssignedTo = null
+            };
+            await _deviceService.UpdateDeviceAsync(model);
         }
     }
 }
