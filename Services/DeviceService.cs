@@ -186,6 +186,7 @@ public class DeviceService : IDeviceService
             device.UserId = user.Id;
             await AddDeviceHistoryAsync(Enum.Unassignedto, user, device);
         }
+        
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
@@ -272,9 +273,8 @@ public class DeviceService : IDeviceService
 
     private async Task AddDeviceHistoryAsync(Enum action, User? user, Device? device, string oldName = "")
     {
-        string actionString = "";
-
-
+        var actionString = "";
+        
         switch (action)
         {
             case Enum.AssignedTo:
@@ -325,7 +325,7 @@ public class DeviceService : IDeviceService
 
             case Enum.DeviceToUnassigned:
                 actionString = string.Format(action.GetAttribute(),
-                    device?.User?.FirstName + " " +  device?.User?.LastName + "(" +  device?.User?.UserName + ")");
+                    device?.User?.FirstName + " " + device?.User?.LastName + "(" + device?.User?.UserName + ")");
 
                 break;
         }
