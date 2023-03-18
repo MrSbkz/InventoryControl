@@ -208,10 +208,9 @@ public class DeviceService : IDeviceService
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
-            .Where(x =>
-                (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
-                (x.Name.Contains(search)))
+            .Where(x => x.User != null &&
+                        (x.DecommissionDate == null || showDecommissionDevice) &&
+                        (x.Name.Contains(search)))
             .ToListAsync();
 
         devices.AddRange(devicesByName);
@@ -221,7 +220,6 @@ public class DeviceService : IDeviceService
             .Where(x =>
                 x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 (x.User.UserName.Contains(search)))
             .ToListAsync();
 
@@ -232,7 +230,6 @@ public class DeviceService : IDeviceService
             .Where(x =>
                 x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 ((x.User.FirstName + x.User.LastName).Contains(search) ||
                  (x.User.LastName + x.User.FirstName).Contains(search)))
             .ToListAsync();
