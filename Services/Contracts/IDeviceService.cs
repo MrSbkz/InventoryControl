@@ -18,6 +18,8 @@ public interface IDeviceService
         bool showUnassignedDevices);
     
     public Task<DeviceDto> GetDeviceAsync(int id);
+    
+    public Task<List<DeviceDto>> GetDevicesToUserAsync(string userName);
 
     public Task<IList<Employee>> GetEmployeesAsync();
 

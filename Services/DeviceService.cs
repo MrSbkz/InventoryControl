@@ -60,12 +60,18 @@ public class DeviceService : IDeviceService
     {
         return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
             showUnassignedDevices));
-        
     }
+
     public async Task<DeviceDto> GetDeviceAsync(int id)
     {
         var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
         return _mapper.Map<DeviceDto>(device);
+    }
+
+    public async Task<List<DeviceDto>> GetDevicesToUserAsync(string userName)
+    {
+        var devices = await SearchDevices(userName);
+        return _mapper.Map<List<DeviceDto>>(devices);
     }
 
     public async Task<QrCodeModel> GetQrCodeAsync(int id)
@@ -191,8 +197,8 @@ public class DeviceService : IDeviceService
 
     private async Task<IList<Device>> SearchDevices(
         string searchString,
-        bool showDecommissionDevice,
-        bool showUnassignedDevices)
+        bool showDecommissionDevice = false,
+        bool showUnassignedDevices = false)
 
     {
         var devices = new List<Device>();
