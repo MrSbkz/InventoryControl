@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using InventoryControl.Data;
 using InventoryControl.Data.Entities;
-using InventoryControl.Enums;
+using InventoryControl.Extensions;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using QRCodeEncoderLibrary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Enum = InventoryControl.Enums.Enum;
 
 namespace InventoryControl.Services;
 
@@ -117,11 +118,12 @@ public class DeviceService : IDeviceService
         {
             throw new Exception("Devices is not found");
         }
-        
+
         if (device.DecommissionDate != null)
         {
-            throw new Exception("Cann't inventory decommission device!");
+            throw new Exception("Cannot inventory decommission device!");
         }
+
         var inventory = new Inventory()
         {
             CreatedBy = user,
@@ -129,11 +131,10 @@ public class DeviceService : IDeviceService
             DeviceId = device.Id
         };
         await _appContext.Inventories.AddAsync(inventory);
-        await _appContext.SaveChangesAsync();
 
-        await AddDeviceHistoryAsync(DeviceHistoryAction.InventoryBy, user, device);
+        await AddDeviceHistoryAsync(Enum.InventoryBy, user, device);
+
         return "Inventory is successfully ";
-
     }
 
     public async Task<IList<DeviceHistoryDto>> GetDeviceHistoryAsync(int deviceId)
@@ -160,8 +161,8 @@ public class DeviceService : IDeviceService
         };
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
+        await AddDeviceHistoryAsync(Enum.AssignedTo, user, device);
 
-        await AddDeviceHistoryAsync(DeviceHistoryAction.AssignedTo, user, device);
         return _mapper.Map<DeviceDto>(device);
     }
 
@@ -175,19 +176,26 @@ public class DeviceService : IDeviceService
 
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, null, device);
+            await AddDeviceHistoryAsync(Enum.DeviceToUnassigned, null, device);
             device.UserId = null;
+        }
+
+        else if (string.IsNullOrEmpty(device.UserId))
+        {
+            var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            device.UserId = user.Id;
+            await AddDeviceHistoryAsync(Enum.Unassignedto, user, device);
         }
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             device.UserId = user.Id;
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, user, device);
+            await AddDeviceHistoryAsync(Enum.UpdateAssigning, user, device);
         }
 
         if (device.Name != model.Name)
         {
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateDeviceName, device.User, device, model.Name);
+            await AddDeviceHistoryAsync(Enum.UpdateDeviceName, device.User, device, model.Name);
             device.Name = model.Name;
         }
 
@@ -212,9 +220,10 @@ public class DeviceService : IDeviceService
             _appContext.Devices.Update(device);
             await _appContext.SaveChangesAsync();
             var user = await _userManager.FindByNameAsync(userName);
-            await AddDeviceHistoryAsync(DeviceHistoryAction.DecommissionedBy, user, device);
+            await AddDeviceHistoryAsync(Enum.DecommissionedBy, user, device);
         }
 
+        await _appContext.SaveChangesAsync();
         return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
 
@@ -261,46 +270,64 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistoryAsync(string action, User? user, Device? device, string oldName = "")
+    private async Task AddDeviceHistoryAsync(Enum action, User? user, Device? device, string oldName = "")
     {
-        string actionString;
+        string actionString = "";
 
-        if (action == DeviceHistoryAction.UpdateDeviceName)
+
+        switch (action)
         {
-            actionString = string.Format(action, device.Name, oldName);
-        }
-        else if (action == DeviceHistoryAction.UpdateAssigning)
-        {
-            if (user == null)
-            {
-                user = new User()
+            case Enum.AssignedTo:
+                if (device != null)
                 {
-                    UserName = string.Empty,
-                    FirstName = string.Empty,
-                    LastName = string.Empty
-                };
-            }
+                    actionString = string.Format(action.GetAttribute(),
+                        !string.IsNullOrEmpty(device.User?.UserName)
+                            ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName +
+                              ")"
+                            : "no user", user?.UserName);
+                }
 
-            if (device.User == null)
-            {
-                device.User = new User()
-                {
-                    UserName = string.Empty,
-                    FirstName = string.Empty,
-                    LastName = string.Empty
-                };
-            }
+                break;
 
-            actionString = string.Format(action, !string.IsNullOrEmpty(device.User.UserName)
-                    ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName + ")"
-                    : "no user",
-                !string.IsNullOrEmpty(user.UserName)
-                    ? user.FirstName + " " + user.LastName + "(" + device.User.UserName + ")"
-                    : "no user");
-        }
-        else
-        {
-            actionString = string.Format(action, user.FirstName + " " + user.LastName, user.UserName);
+            case Enum.Unassignedto:
+                if (device != null)
+                    actionString = string.Format(action.GetAttribute(),
+                        user?.FirstName + " " + user?.LastName + "(" + user?.UserName + ")");
+                break;
+
+            case Enum.InventoryBy:
+                actionString = string.Format(action.GetAttribute(), user?.FirstName + " " + user?.LastName,
+                    user?.UserName);
+                break;
+
+            case Enum.UpdateDeviceName:
+                actionString = string.Format(action.GetAttribute(), device?.Name, oldName);
+                break;
+
+            case Enum.UpdateAssigning:
+                if (device != null)
+                    actionString = string.Format(action.GetAttribute(),
+                        !string.IsNullOrEmpty(device.User?.UserName)
+                            ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName + ")"
+                            : "no user",
+                        !string.IsNullOrEmpty(user?.UserName)
+                            ? user.FirstName + " " + user.LastName + "(" + user.UserName + ")"
+                            : "no user");
+                break;
+
+            case Enum.DecommissionedBy:
+                if (device != null)
+                    actionString = string.Format(action.GetAttribute(),
+                        !string.IsNullOrEmpty(user?.UserName)
+                            ? user.FirstName + " " + user.LastName + "(" + user.UserName + ")"
+                            : "no user");
+                break;
+
+            case Enum.DeviceToUnassigned:
+                actionString = string.Format(action.GetAttribute(),
+                    device?.User?.FirstName + " " +  device?.User?.LastName + "(" +  device?.User?.UserName + ")");
+
+                break;
         }
 
         var history = new DeviceHistory

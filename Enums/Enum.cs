@@ -2,7 +2,7 @@
 
 namespace InventoryControl.Enums;
 
-public enum DeviceHistoryAction
+public enum Enum
 {
     [Display(Name = "Assigned to {0} ({1})")]
     AssignedTo,
@@ -16,7 +16,7 @@ public enum DeviceHistoryAction
     [Display(Name = "Updated user assigning from {0} to {1}")]
     UpdateAssigning,
 
-    [Display(Name = "Decommissioned by {0} ({1})")]
+    [Display(Name = "Decommissioned by {0}")]
     DecommissionedBy,
 
     [Display(Name = "Updated an unassigned user to {0} ")]
