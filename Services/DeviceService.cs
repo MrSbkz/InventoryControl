@@ -60,8 +60,8 @@ public class DeviceService : IDeviceService
     {
         return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
             showUnassignedDevices));
-        
     }
+
     public async Task<DeviceDto> GetDeviceAsync(int id)
     {
         var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
@@ -163,7 +163,7 @@ public class DeviceService : IDeviceService
             device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
         }
 
-        device.Name = model.Name;
+        if (model.Name != null) device.Name = model.Name;
 
         _appContext.Devices.Update(device);
 
@@ -196,7 +196,15 @@ public class DeviceService : IDeviceService
 
     {
         var devices = new List<Device>();
+
         var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
+
+        if (showUnassignedDevices)
+        {
+            devices = await _appContext.Devices.Include(x => x.User)
+                .Where(x => x.UserId == null && x.Name.Contains(search)).ToListAsync();
+            return devices;
+        }
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
@@ -211,6 +219,7 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToUserName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
                 (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 (x.User.UserName.Contains(search)))
@@ -221,6 +230,7 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToFullName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
                 (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 ((x.User.FirstName + x.User.LastName).Contains(search) ||
