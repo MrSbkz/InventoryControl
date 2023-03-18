@@ -183,13 +183,16 @@ public class DeviceService : IDeviceService
         else if (string.IsNullOrEmpty(device.UserId))
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
             await AddDeviceHistoryAsync(Enum.Unassignedto, user, device);
+            throw new Exception("User is in active");
         }
         
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
             await AddDeviceHistoryAsync(Enum.UpdateAssigning, user, device);
         }
