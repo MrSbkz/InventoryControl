@@ -41,7 +41,7 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
-        var devices = await SearchDevices(searchString, showDecommissionDevice, showUnassignedDevices);
+        var devices = await SearchDevicesAsync(searchString, showDecommissionDevice, showUnassignedDevices);
 
         return new Page<DeviceDto>()
         {
@@ -58,7 +58,7 @@ public class DeviceService : IDeviceService
         bool showDecommissionDevice,
         bool showUnassignedDevices)
     {
-        return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
+        return _mapper.Map<IList<DeviceDto>>(await SearchDevicesAsync(searchString, showDecommissionDevice,
             showUnassignedDevices));
     }
 
@@ -189,7 +189,7 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
-    private async Task<IList<Device>> SearchDevices(
+    private async Task<IList<Device>> SearchDevicesAsync(
         string searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices)
