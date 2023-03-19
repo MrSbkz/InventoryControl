@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using InventoryControl.Data;
 using InventoryControl.Data.Entities;
+using InventoryControl.Enums;
 using InventoryControl.Extensions;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
@@ -8,7 +9,6 @@ using QRCodeEncoderLibrary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using Enum = InventoryControl.Enums.Enum;
 
 namespace InventoryControl.Services;
 
@@ -132,7 +132,7 @@ public class DeviceService : IDeviceService
         };
         await _appContext.Inventories.AddAsync(inventory);
 
-        await AddDeviceHistoryAsync(Enum.InventoryBy, user, device);
+        await AddDeviceHistoryAsync(DeviceHistoryAction.Inventory, user, device);
 
         return "Inventory is successfully ";
     }
@@ -161,7 +161,7 @@ public class DeviceService : IDeviceService
         };
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
-        await AddDeviceHistoryAsync(Enum.AssignedTo, user, device);
+        await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
 
         return _mapper.Map<DeviceDto>(device);
     }
@@ -176,7 +176,7 @@ public class DeviceService : IDeviceService
 
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            await AddDeviceHistoryAsync(Enum.DeviceToUnassigned, null, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.DeviceToUnassigned, null, device);
             device.UserId = null;
         }
 
@@ -185,7 +185,7 @@ public class DeviceService : IDeviceService
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
-            await AddDeviceHistoryAsync(Enum.Unassignedto, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UnassignedTo, user, device);
             throw new Exception("User is in active");
         }
         
@@ -194,12 +194,12 @@ public class DeviceService : IDeviceService
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
-            await AddDeviceHistoryAsync(Enum.UpdateAssigning, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, user, device);
         }
 
         if (device.Name != model.Name)
         {
-            await AddDeviceHistoryAsync(Enum.UpdateDeviceName, device.User, device, model.Name);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateName, device.User, device, model.Name);
             device.Name = model.Name;
         }
 
@@ -224,7 +224,7 @@ public class DeviceService : IDeviceService
             _appContext.Devices.Update(device);
             await _appContext.SaveChangesAsync();
             var user = await _userManager.FindByNameAsync(userName);
-            await AddDeviceHistoryAsync(Enum.DecommissionedBy, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Decommissioned, user, device);
         }
 
         await _appContext.SaveChangesAsync();
@@ -274,13 +274,13 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistoryAsync(Enum action, User? user, Device? device, string oldName = "")
+    private async Task AddDeviceHistoryAsync(DeviceHistoryAction action, User? user, Device? device, string oldName = "")
     {
         var actionString = "";
         
         switch (action)
         {
-            case Enum.AssignedTo:
+            case DeviceHistoryAction.Assigned:
                 if (device != null)
                 {
                     actionString = string.Format(action.GetAttribute(),
@@ -292,22 +292,22 @@ public class DeviceService : IDeviceService
 
                 break;
 
-            case Enum.Unassignedto:
+            case DeviceHistoryAction.UnassignedTo:
                 if (device != null)
                     actionString = string.Format(action.GetAttribute(),
                         user?.FirstName + " " + user?.LastName + "(" + user?.UserName + ")");
                 break;
 
-            case Enum.InventoryBy:
+            case DeviceHistoryAction.Inventory:
                 actionString = string.Format(action.GetAttribute(), user?.FirstName + " " + user?.LastName,
                     user?.UserName);
                 break;
 
-            case Enum.UpdateDeviceName:
+            case DeviceHistoryAction.UpdateName:
                 actionString = string.Format(action.GetAttribute(), device?.Name, oldName);
                 break;
 
-            case Enum.UpdateAssigning:
+            case DeviceHistoryAction.UpdateAssigning:
                 if (device != null)
                     actionString = string.Format(action.GetAttribute(),
                         !string.IsNullOrEmpty(device.User?.UserName)
@@ -318,7 +318,7 @@ public class DeviceService : IDeviceService
                             : "no user");
                 break;
 
-            case Enum.DecommissionedBy:
+            case DeviceHistoryAction.Decommissioned:
                 if (device != null)
                     actionString = string.Format(action.GetAttribute(),
                         !string.IsNullOrEmpty(user?.UserName)
@@ -326,7 +326,7 @@ public class DeviceService : IDeviceService
                             : "no user");
                 break;
 
-            case Enum.DeviceToUnassigned:
+            case DeviceHistoryAction.DeviceToUnassigned:
                 actionString = string.Format(action.GetAttribute(),
                     device?.User?.FirstName + " " + device?.User?.LastName + "(" + device?.User?.UserName + ")");
 
