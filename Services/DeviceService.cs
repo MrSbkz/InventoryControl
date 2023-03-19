@@ -45,7 +45,6 @@ public class DeviceService : IDeviceService
     {
         var devices = await SearchDevicesAsync(searchString, showDecommissionDevice, showUnassignedDevices);
 
-
         return new Page<DeviceDto>()
         {
             CurrentPage = currentPage,
@@ -176,7 +175,7 @@ public class DeviceService : IDeviceService
 
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            await AddDeviceHistoryAsync(DeviceHistoryAction.DeviceToUnassigned, null, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, null, device);
             device.UserId = null;
         }
 
@@ -185,7 +184,7 @@ public class DeviceService : IDeviceService
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UnassignedTo, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, user, device);
             throw new Exception("User is in active");
         }
         
@@ -194,9 +193,9 @@ public class DeviceService : IDeviceService
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
             if (!user.IsActive) throw new Exception("User is in active");
             device.UserId = user.Id;
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateAssigning, user, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
         }
-
+        
         if (device.Name != model.Name)
         {
             await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateName, device.User, device, model.Name);
@@ -232,20 +231,28 @@ public class DeviceService : IDeviceService
     }
 
     private async Task<IList<Device>> SearchDevicesAsync(
+
         string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices)
 
     {
         var devices = new List<Device>();
+
         var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
+
+        if (showUnassignedDevices)
+        {
+            devices = await _appContext.Devices.Include(x => x.User)
+                .Where(x => x.UserId == null && x.Name.Contains(search)).ToListAsync();
+            return devices;
+        }
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
-            .Where(x =>
-                (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
-                !string.IsNullOrEmpty(x.Name) && (x.Name.Contains(search)))
+            .Where(x => x.User != null &&
+                        (x.DecommissionDate == null || showDecommissionDevice) &&
+                        (x.Name.Contains(search)))
             .ToListAsync();
 
         devices.AddRange(devicesByName);
@@ -253,9 +260,9 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToUserName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
-                x.User != null && x.User.UserName.Contains(search))
+                (x.User.UserName.Contains(search)))
             .ToListAsync();
 
         devices.AddRange(devicesByAssignedToUserName.Except(devicesByName));
@@ -263,10 +270,10 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToFullName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
-                (x.User != null && (x.User.FirstName + x.User.LastName).Contains(search) ||
-                 x.User != null && (x.User.LastName + x.User.FirstName).Contains(search)))
+                ((x.User.FirstName + x.User.LastName).Contains(search) ||
+                 (x.User.LastName + x.User.FirstName).Contains(search)))
             .ToListAsync();
 
         devices.AddRange(devicesByAssignedToFullName.Except(devicesByAssignedToUserName));
@@ -292,12 +299,6 @@ public class DeviceService : IDeviceService
 
                 break;
 
-            case DeviceHistoryAction.UnassignedTo:
-                if (device != null)
-                    actionString = string.Format(action.GetAttribute(),
-                        user?.FirstName + " " + user?.LastName + "(" + user?.UserName + ")");
-                break;
-
             case DeviceHistoryAction.Inventory:
                 actionString = string.Format(action.GetAttribute(), user?.FirstName + " " + user?.LastName,
                     user?.UserName);
@@ -305,17 +306,6 @@ public class DeviceService : IDeviceService
 
             case DeviceHistoryAction.UpdateName:
                 actionString = string.Format(action.GetAttribute(), device?.Name, oldName);
-                break;
-
-            case DeviceHistoryAction.UpdateAssigning:
-                if (device != null)
-                    actionString = string.Format(action.GetAttribute(),
-                        !string.IsNullOrEmpty(device.User?.UserName)
-                            ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName + ")"
-                            : "no user",
-                        !string.IsNullOrEmpty(user?.UserName)
-                            ? user.FirstName + " " + user.LastName + "(" + user.UserName + ")"
-                            : "no user");
                 break;
 
             case DeviceHistoryAction.Decommissioned:
@@ -326,7 +316,7 @@ public class DeviceService : IDeviceService
                             : "no user");
                 break;
 
-            case DeviceHistoryAction.DeviceToUnassigned:
+            case DeviceHistoryAction.UnAssigned:
                 actionString = string.Format(action.GetAttribute(),
                     device?.User?.FirstName + " " + device?.User?.LastName + "(" + device?.User?.UserName + ")");
 
