@@ -3,14 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data.Configurations
 {
-    public class DeviceHistoryConfiguration
+    public static class DeviceHistoryConfiguration
     {
         public static void Create(ModelBuilder builder)
         {
             builder.Entity<DeviceHistory>()
-                .HasOne(x => x.Ticket)
+                .HasOne(x => x.Device)
                 .WithMany()
-                .HasForeignKey(x => x.TicketId);
+                .HasForeignKey(x => x.DeviceId);
         }
+        
     }
 }

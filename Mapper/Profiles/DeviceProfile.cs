@@ -13,5 +13,8 @@ public class DeviceProfile : Profile
         CreateMap<User, Employee>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(x => x.UserName))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(x => x.FirstName + " " + x.LastName));
+        CreateMap<DeviceHistory, DeviceHistoryDto>()
+            .ForMember(dest => dest.Action, opt => opt.MapFrom(x => x.Action))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(x => x.CreatedDate));
     }
 }

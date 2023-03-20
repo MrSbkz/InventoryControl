@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryControl.Data.Configurations
 {
-    public class DeviceConfiguration
+    public static class DeviceConfiguration
     {
         public static void Create(ModelBuilder builder)
         {

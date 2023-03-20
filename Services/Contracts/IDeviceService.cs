@@ -6,7 +6,7 @@ namespace InventoryControl.Services.Contracts;
 public interface IDeviceService
 {
     public Task<Page<DeviceDto>> GetDevicesAsync(
-        string searchString,
+        string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices,
         int currentPage,
@@ -26,10 +26,13 @@ public interface IDeviceService
     public Task<QrCodeModel> GetQrCodeAsync(int id);
 
     public Task<string> InventoryAsync(int id, string name);
+    public Task<IList<DeviceHistoryDto>> GetDeviceHistoryAsync(int deviceId);
 
     public Task<DeviceDto> AddDeviceAsync(AddDeviceModel model);
 
     public Task<DeviceDto> UpdateDeviceAsync(UpdateDeviceModel model);
+    
+    public Task<DeviceDto> DecommissDeviceAsync(int id, string userName);
 
-    public Task<DeviceDto> DecommissDeviceAsync(int id);
+  
 }
