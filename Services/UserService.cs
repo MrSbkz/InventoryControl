@@ -15,10 +15,7 @@ public class UserService : IUserService
     private readonly IDeviceService _deviceService;
     private readonly AppDbContext _appContext;
 
-    public UserService(
-        UserManager<User> userManager,
-        IMapper mapper,
-        AppDbContext appContext,
+    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext,
         IDeviceService deviceService)
     {
         _userManager = userManager;
