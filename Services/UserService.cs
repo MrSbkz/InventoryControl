@@ -48,8 +48,8 @@ public class UserService : IUserService
         var user = await _userManager.FindByNameAsync(userName);
         if (user != null)
         {
-            var devices = await _deviceService.GetDevicesToUserAsync(
-                user.UserName);
+            var devices = await _deviceService.GetUserDevicesAsync(
+                user);
 
             return new UserInfoDto()
             {

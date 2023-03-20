@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using InventoryControl.Data.Entities;
 using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
@@ -19,7 +19,7 @@ public interface IDeviceService
     
     public Task<DeviceDto> GetDeviceAsync(int id);
     
-    public Task<List<DeviceDto>> GetDevicesToUserAsync(string userName);
+    public Task<List<DeviceDto>> GetUserDevicesAsync(User user);
 
     public Task<IList<Employee>> GetEmployeesAsync();
 

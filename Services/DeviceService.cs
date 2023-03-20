@@ -68,9 +68,9 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
-    public async Task<List<DeviceDto>> GetDevicesToUserAsync(string userName)
+    public async Task<List<DeviceDto>> GetUserDevicesAsync(User user)
     {
-        var devices = await SearchDevices(userName);
+        var devices = await _appContext.Devices.Where(x=>x.UserId==user.Id).ToListAsync();
         return _mapper.Map<List<DeviceDto>>(devices);
     }
 
