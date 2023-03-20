@@ -13,9 +13,8 @@ public class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
     private readonly IDeviceService _deviceService;
-
     private readonly AppDbContext _appContext;
-
+    
     public UserService(
         UserManager<User> userManager,
         IMapper mapper,
@@ -45,29 +44,19 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserInfoDto?> GetUserAsync(
-        string? userName,
-        bool showDecommissionDevice)
+    public async Task<UserInfoDto?> GetUserAsync(string? userName)
     {
         var user = await _userManager.FindByNameAsync(userName);
-        if (user != null)
+        if (user == null) throw new Exception("User is not found");
+        var devices = await _deviceService.GetUserDevicesAsync(user.Id);
+
+        return new UserInfoDto()
         {
-            var devices = await _deviceService.GetDevicesListAsync(
-                user.UserName,
-                showDecommissionDevice,
-                false);
-
-            return new UserInfoDto()
-            {
-                User = await GetUserDtoAsync(user),
-                Devices = devices
-            };
-        }
-
-        throw new Exception("User is not found");
+            User = await GetUserDtoAsync(user),
+            Devices = devices
+        };
     }
-
-
+    
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
         if (_userManager.Users.Any(x => x.UserName == model.UserName))

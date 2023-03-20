@@ -52,16 +52,14 @@ namespace InventoryControl.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetUserAsync(
-            bool showDecommissionDevice)
+        public async Task<IActionResult> GetUserAsync()
         {
             try
             {
                 var userName = HttpContextHelper.GetUserFromContext(HttpContext);
-                
+
                 var result = await _userService.GetUserAsync(
-                    userName,
-                    showDecommissionDevice);
+                    userName);
                 return Ok(new Response<UserInfoDto>()
                 {
                     IsSuccess = true,

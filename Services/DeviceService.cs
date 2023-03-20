@@ -70,6 +70,12 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
+    public async Task<List<DeviceDto>> GetUserDevicesAsync(string userId)
+    {
+        var devices = await _appContext.Devices.Where(x => x.UserId == userId).ToListAsync();
+        return _mapper.Map<List<DeviceDto>>(devices);
+    }
+
     public async Task<QrCodeModel> GetQrCodeAsync(int id)
     {
         var device = await _appContext.Devices.FindAsync(id);

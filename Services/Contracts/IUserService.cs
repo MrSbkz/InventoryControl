@@ -1,5 +1,4 @@
-﻿using InventoryControl.Data.Entities;
-using InventoryControl.Models;
+﻿using InventoryControl.Models;
 
 namespace InventoryControl.Services.Contracts;
 
@@ -11,9 +10,7 @@ public interface IUserService
         int currentPage,
         int pageSize);
 
-    public Task<UserInfoDto?> GetUserAsync(
-        string? userName,
-        bool showDecommissionDevice);
+    public Task<UserInfoDto?> GetUserAsync(string? userName);
 
     public Task<RegisterResponse> AddUserAsync(RegisterModel model);
 
