@@ -173,28 +173,7 @@ public class DeviceService : IDeviceService
             throw new Exception("Devices is not found");
         }
 
-        if (string.IsNullOrEmpty(model.AssignedTo))
-        {
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, null, device);
-            device.UserId = null;
-        }
-
-        else if (string.IsNullOrEmpty(device.UserId))
-        {
-            var user = await _userManager.FindByNameAsync(model.AssignedTo);
-            if (!user.IsActive) throw new Exception("User is in active");
-            device.UserId = user.Id;
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, user, device);
-            throw new Exception("User is in active");
-        }
-        
-        else
-        {
-            var user = await _userManager.FindByNameAsync(model.AssignedTo);
-            if (!user.IsActive) throw new Exception("User is in active");
-            device.UserId = user.Id;
-            await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
-        }
+        await UpdateDeviceAssignedAsync(device, model);
         
         if (device.Name != model.Name)
         {
@@ -231,7 +210,6 @@ public class DeviceService : IDeviceService
     }
 
     private async Task<IList<Device>> SearchDevicesAsync(
-
         string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices)
@@ -281,20 +259,18 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistoryAsync(DeviceHistoryAction action, User? user, Device? device, string oldName = "")
+    private async Task AddDeviceHistoryAsync(DeviceHistoryAction action, User? user, Device? device,
+        string oldName = "")
     {
         var actionString = "";
-        
+
         switch (action)
         {
             case DeviceHistoryAction.Assigned:
                 if (device != null)
                 {
                     actionString = string.Format(action.GetAttribute(),
-                        !string.IsNullOrEmpty(device.User?.UserName)
-                            ? device.User.FirstName + " " + device.User.LastName + "(" + device.User.UserName +
-                              ")"
-                            : "no user", user?.UserName);
+                        device.User?.FirstName + " " + device.User?.LastName + "(" + device.User?.UserName + ")");
                 }
 
                 break;
@@ -310,16 +286,13 @@ public class DeviceService : IDeviceService
 
             case DeviceHistoryAction.Decommissioned:
                 if (device != null)
-                    actionString = string.Format(action.GetAttribute(),
-                        !string.IsNullOrEmpty(user?.UserName)
-                            ? user.FirstName + " " + user.LastName + "(" + user.UserName + ")"
-                            : "no user");
+                    if (user != null)
+                        actionString = string.Format(action.GetAttribute(),
+                            user.FirstName + " " + user.LastName + "(" + user.UserName + ")");
                 break;
 
             case DeviceHistoryAction.UnAssigned:
-                actionString = string.Format(action.GetAttribute(),
-                    device?.User?.FirstName + " " + device?.User?.LastName + "(" + device?.User?.UserName + ")");
-
+                actionString = action.GetAttribute();
                 break;
         }
 
@@ -331,5 +304,25 @@ public class DeviceService : IDeviceService
         };
         _appContext.DeviceHistories.Update(history);
         await _appContext.SaveChangesAsync();
+    }
+
+    private async Task UpdateDeviceAssignedAsync(Device device, UpdateDeviceModel model )
+    {
+        if (device.UserId == model.AssignedTo) return;
+        if (string.IsNullOrEmpty(model.AssignedTo))
+        {
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, null, device);
+            device.UserId = null;
+            device.User = null;
+        }
+        else
+        {
+            var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            if (!user.IsActive) throw new Exception("User is in active");
+            device.UserId = user.Id;
+            device.User = user;
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
+        }
+
     }
 }
