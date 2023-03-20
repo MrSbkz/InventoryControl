@@ -259,7 +259,10 @@ public class DeviceService : IDeviceService
         return devices;
     }
 
-    private async Task AddDeviceHistoryAsync(DeviceHistoryAction action, User? user, Device? device,
+    private async Task AddDeviceHistoryAsync(
+        DeviceHistoryAction action,
+        User? user,
+        Device? device,
         string oldName = "")
     {
         var actionString = "";
