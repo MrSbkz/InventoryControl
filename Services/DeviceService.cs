@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using InventoryControl.Data;
 using InventoryControl.Data.Entities;
+using InventoryControl.Enums;
+using InventoryControl.Extensions;
 using InventoryControl.Models;
 using InventoryControl.Services.Contracts;
 using QRCodeEncoderLibrary;
@@ -35,7 +37,7 @@ public class DeviceService : IDeviceService
     }
 
     public async Task<Page<DeviceDto>> GetDevicesAsync(
-        string searchString,
+        string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices,
         int currentPage,
@@ -110,20 +112,35 @@ public class DeviceService : IDeviceService
     {
         var device = await _appContext.Devices.FindAsync(id);
         var user = await _userManager.FindByNameAsync(name);
-        if (device != null)
+
+        if (device == null)
         {
-            var inventory = new Inventory()
-            {
-                CreatedBy = user,
-                InventoryDate = DateTime.Now,
-                DeviceId = device.Id
-            };
-            await _appContext.Inventories.AddAsync(inventory);
-            await _appContext.SaveChangesAsync();
-            return "Inventory is successfully ";
+            throw new Exception("Devices is not found");
         }
 
-        throw new Exception("Devices is not found");
+        if (device.DecommissionDate != null)
+        {
+            throw new Exception("Cannot inventory decommission device!");
+        }
+
+        var inventory = new Inventory()
+        {
+            CreatedBy = user,
+            InventoryDate = DateTime.Now,
+            DeviceId = device.Id
+        };
+        await _appContext.Inventories.AddAsync(inventory);
+
+        await AddDeviceHistoryAsync(DeviceHistoryAction.Inventory, user, device);
+
+        return "Inventory is successfully ";
+    }
+
+    public async Task<IList<DeviceHistoryDto>> GetDeviceHistoryAsync(int deviceId)
+    {
+        var history = await _appContext.DeviceHistories.Where(x => x.DeviceId == deviceId).ToListAsync();
+
+        return _mapper.Map<IList<DeviceHistoryDto>>(history);
     }
 
     public async Task<DeviceDto> AddDeviceAsync(AddDeviceModel model)
@@ -133,45 +150,44 @@ public class DeviceService : IDeviceService
             throw new Exception("User is not found");
         }
 
+        var user = await _userManager.FindByNameAsync(model.UserName);
         var device = new Device
         {
             Name = model.Name,
             RegisterDate = DateTime.Now,
-            UserId = (await _userManager.FindByNameAsync(model.UserName)).Id,
+            UserId = user.Id,
             DecommissionDate = null,
         };
         await _appContext.Devices.AddAsync(device);
         await _appContext.SaveChangesAsync();
+        await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
 
         return _mapper.Map<DeviceDto>(device);
     }
 
     public async Task<DeviceDto> UpdateDeviceAsync(UpdateDeviceModel model)
     {
-        var device = await _appContext.Devices.FindAsync(model.Id);
+        var device = await _appContext.Devices.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == model.Id);
         if (device == null)
         {
             throw new Exception("Devices is not found");
         }
 
-        if (string.IsNullOrEmpty(model.AssignedTo))
-        {
-            device.UserId = null;
-        }
-        else
-        {
-            device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
-        }
+        await UpdateDeviceAssignedAsync(device, model);
 
-        if (model.Name != null) device.Name = model.Name;
+        if (device.Name != model.Name)
+        {
+            await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateName, device.User, device, model.Name);
+            device.Name = model.Name;
+        }
 
         _appContext.Devices.Update(device);
 
         await _appContext.SaveChangesAsync();
-        return _mapper.Map<DeviceDto>(device);
+        return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(model.Id));
     }
 
-    public async Task<DeviceDto> DecommissDeviceAsync(int id)
+    public async Task<DeviceDto> DecommissDeviceAsync(int id, string userName)
     {
         var device = await _appContext.Devices.FindAsync(id);
         if (device?.DecommissionDate != null)
@@ -182,15 +198,19 @@ public class DeviceService : IDeviceService
         if (device != null)
         {
             device.DecommissionDate = DateTime.Now;
+            device.UserId = null;
             _appContext.Devices.Update(device);
             await _appContext.SaveChangesAsync();
+            var user = await _userManager.FindByNameAsync(userName);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Decommissioned, user, device);
         }
 
-        return _mapper.Map<DeviceDto>(device);
+        await _appContext.SaveChangesAsync();
+        return _mapper.Map<DeviceDto>(await _appContext.Devices.FindAsync(id));
     }
 
     private async Task<IList<Device>> SearchDevicesAsync(
-        string searchString,
+        string? searchString,
         bool showDecommissionDevice,
         bool showUnassignedDevices)
 
@@ -237,5 +257,75 @@ public class DeviceService : IDeviceService
         devices.AddRange(devicesByAssignedToFullName.Except(devicesByAssignedToUserName));
 
         return devices;
+    }
+
+    private async Task AddDeviceHistoryAsync(
+        DeviceHistoryAction action,
+        User? user,
+        Device? device,
+        string oldName = "")
+    {
+        var actionString = "";
+
+        switch (action)
+        {
+            case DeviceHistoryAction.Assigned:
+                if (device != null)
+                {
+                    actionString = string.Format(action.GetAttribute(),
+                        device.User?.FirstName + " " + device.User?.LastName + "(" + device.User?.UserName + ")");
+                }
+
+                break;
+
+            case DeviceHistoryAction.Inventory:
+                if (user != null)
+                    actionString = string.Format(action.GetAttribute(),
+                        user.FirstName + " " + user.LastName + "(" + user.UserName + ")");
+                break;
+
+            case DeviceHistoryAction.UpdateName:
+                actionString = string.Format(action.GetAttribute(), device?.Name, oldName);
+                break;
+
+            case DeviceHistoryAction.Decommissioned:
+                if (device != null)
+                    if (user != null)
+                        actionString = string.Format(action.GetAttribute(),
+                            user.FirstName + " " + user.LastName + "(" + user.UserName + ")");
+                break;
+
+            case DeviceHistoryAction.Unassigned:
+                actionString = action.GetAttribute();
+                break;
+        }
+
+        var history = new DeviceHistory
+        {
+            Action = actionString,
+            DeviceId = device!.Id,
+            CreatedDate = DateTime.Now,
+        };
+        _appContext.DeviceHistories.Update(history);
+        await _appContext.SaveChangesAsync();
+    }
+
+    private async Task UpdateDeviceAssignedAsync(Device device, UpdateDeviceModel model)
+    {
+        if (device.User?.UserName == model.AssignedTo) return;
+        if (string.IsNullOrEmpty(model.AssignedTo))
+        {
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Unassigned, null, device);
+            device.UserId = null;
+            device.User = null;
+        }
+        else
+        {
+            var user = await _userManager.FindByNameAsync(model.AssignedTo);
+            if (!user.IsActive) throw new Exception("User is inactive");
+            device.UserId = user.Id;
+            device.User = user;
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
+        }
     }
 }

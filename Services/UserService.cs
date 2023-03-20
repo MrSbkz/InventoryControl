@@ -16,7 +16,11 @@ public class UserService : IUserService
 
     private readonly AppDbContext _appContext;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, AppDbContext appContext, IDeviceService deviceService)
+    public UserService(
+        UserManager<User> userManager,
+        IMapper mapper,
+        AppDbContext appContext,
+        IDeviceService deviceService)
     {
         _userManager = userManager;
         _mapper = mapper;
@@ -63,7 +67,7 @@ public class UserService : IUserService
         throw new Exception("User is not found");
     }
 
-    
+
     public async Task<RegisterResponse> AddUserAsync(RegisterModel model)
     {
         if (_userManager.Users.Any(x => x.UserName == model.UserName))
@@ -132,7 +136,7 @@ public class UserService : IUserService
         {
             user.IsActive = false;
             var devices = await _appContext.Devices.Include(x => x.User).Where(x => x.UserId == user.Id).ToListAsync();
-            UnassignDevices(devices);
+            await UnassignDevicesAsync(devices);
             await _userManager.UpdateAsync(user);
             return "User got inactive";
         }
@@ -197,13 +201,17 @@ public class UserService : IUserService
         return users;
     }
 
-    private void UnassignDevices(List<Device> devices)
+    private async Task UnassignDevicesAsync(List<Device> devices)
     {
         foreach (var device in devices)
         {
-            device.User = null;
-            device.UserId = null;
-            _appContext.Devices.Update(device);
+            var model = new UpdateDeviceModel()
+            {
+                Id = device.Id,
+                Name = device.Name,
+                AssignedTo = null
+            };
+            await _deviceService.UpdateDeviceAsync(model);
         }
     }
 }
