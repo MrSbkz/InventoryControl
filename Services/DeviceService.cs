@@ -41,7 +41,7 @@ public class DeviceService : IDeviceService
         int currentPage,
         int pageSize)
     {
-        var devices = await SearchDevices(searchString, showDecommissionDevice, showUnassignedDevices);
+        var devices = await SearchDevicesAsync(searchString, showDecommissionDevice, showUnassignedDevices);
 
         return new Page<DeviceDto>()
         {
@@ -58,7 +58,7 @@ public class DeviceService : IDeviceService
         bool showDecommissionDevice,
         bool showUnassignedDevices)
     {
-        return _mapper.Map<IList<DeviceDto>>(await SearchDevices(searchString, showDecommissionDevice,
+        return _mapper.Map<IList<DeviceDto>>(await SearchDevicesAsync(searchString, showDecommissionDevice,
             showUnassignedDevices));
     }
 
@@ -169,7 +169,7 @@ public class DeviceService : IDeviceService
             device.UserId = (await _userManager.FindByNameAsync(model.AssignedTo)).Id;
         }
 
-        device.Name = model.Name;
+        if (model.Name != null) device.Name = model.Name;
 
         _appContext.Devices.Update(device);
 
@@ -195,21 +195,28 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
-    private async Task<IList<Device>> SearchDevices(
+    private async Task<IList<Device>> SearchDevicesAsync(
         string searchString,
         bool showDecommissionDevice = false,
         bool showUnassignedDevices = false)
 
     {
         var devices = new List<Device>();
+
         var search = !string.IsNullOrEmpty(searchString) ? searchString.Replace(" ", "") : string.Empty;
+
+        if (showUnassignedDevices)
+        {
+            devices = await _appContext.Devices.Include(x => x.User)
+                .Where(x => x.UserId == null && x.Name.Contains(search)).ToListAsync();
+            return devices;
+        }
 
         var devicesByName = await _appContext.Devices
             .Include(x => x.User)
-            .Where(x =>
-                (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
-                (x.Name.Contains(search)))
+            .Where(x => x.User != null &&
+                        (x.DecommissionDate == null || showDecommissionDevice) &&
+                        (x.Name.Contains(search)))
             .ToListAsync();
 
         devices.AddRange(devicesByName);
@@ -217,8 +224,8 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToUserName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 (x.User.UserName.Contains(search)))
             .ToListAsync();
 
@@ -227,8 +234,8 @@ public class DeviceService : IDeviceService
         var devicesByAssignedToFullName = await _appContext.Devices
             .Include(x => x.User)
             .Where(x =>
+                x.User != null &&
                 (x.DecommissionDate == null || showDecommissionDevice) &&
-                (!string.IsNullOrEmpty(x.UserId) || showUnassignedDevices) &&
                 ((x.User.FirstName + x.User.LastName).Contains(search) ||
                  (x.User.LastName + x.User.FirstName).Contains(search)))
             .ToListAsync();
