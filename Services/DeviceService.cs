@@ -292,7 +292,7 @@ public class DeviceService : IDeviceService
                             user.FirstName + " " + user.LastName + "(" + user.UserName + ")");
                 break;
 
-            case DeviceHistoryAction.UnAssigned:
+            case DeviceHistoryAction.Unassigned:
                 actionString = action.GetAttribute();
                 break;
         }
@@ -312,14 +312,14 @@ public class DeviceService : IDeviceService
         if (device.User?.UserName == model.AssignedTo) return;
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
-            await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, null, device);
+            await AddDeviceHistoryAsync(DeviceHistoryAction.Unassigned, null, device);
             device.UserId = null;
             device.User = null;
         }
         else
         {
             var user = await _userManager.FindByNameAsync(model.AssignedTo);
-            if (!user.IsActive) throw new Exception("User is in active");
+            if (!user.IsActive) throw new Exception("User is inactive");
             device.UserId = user.Id;
             device.User = user;
             await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);

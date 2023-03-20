@@ -16,6 +16,6 @@ public enum DeviceHistoryAction
     [Display(Name = "Decommissioned by {0}")]
     Decommissioned,
 
-    [Display(Name = "Unassigned device")]
-    UnAssigned
+    [Display(Name = "Unassign device user")]
+    Unassigned
 }
