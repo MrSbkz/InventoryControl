@@ -19,7 +19,7 @@ public interface IDeviceService
     
     public Task<DeviceDto> GetDeviceAsync(int id);
     
-    public Task<List<DeviceDto>> GetUserDevicesAsync(User user);
+    public Task<List<DeviceDto>> GetUserDevicesAsync(string userId);
 
     public Task<IList<Employee>> GetEmployeesAsync();
 

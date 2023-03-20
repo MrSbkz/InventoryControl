@@ -68,9 +68,9 @@ public class DeviceService : IDeviceService
         return _mapper.Map<DeviceDto>(device);
     }
 
-    public async Task<List<DeviceDto>> GetUserDevicesAsync(User user)
+    public async Task<List<DeviceDto>> GetUserDevicesAsync(string userId)
     {
-        var devices = await _appContext.Devices.Where(x=>x.UserId==user.Id).ToListAsync();
+        var devices = await _appContext.Devices.Where(x => x.UserId == userId).ToListAsync();
         return _mapper.Map<List<DeviceDto>>(devices);
     }
 
@@ -197,8 +197,8 @@ public class DeviceService : IDeviceService
 
     private async Task<IList<Device>> SearchDevicesAsync(
         string searchString,
-        bool showDecommissionDevice = false,
-        bool showUnassignedDevices = false)
+        bool showDecommissionDevice,
+        bool showUnassignedDevices)
 
     {
         var devices = new List<Device>();
