@@ -10,8 +10,7 @@ public interface IUserService
         int currentPage,
         int pageSize);
 
-    public Task<UserInfoDto?> GetUserAsync(
-        string? userName);
+    public Task<UserInfoDto?> GetUserAsync(string? userName);
 
     public Task<RegisterResponse> AddUserAsync(RegisterModel model);
 
