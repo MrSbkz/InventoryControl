@@ -309,7 +309,7 @@ public class DeviceService : IDeviceService
 
     private async Task UpdateDeviceAssignedAsync(Device device, UpdateDeviceModel model)
     {
-        if (device.UserId == model.AssignedTo) return;
+        if (device.User?.UserName == model.AssignedTo) return;
         if (string.IsNullOrEmpty(model.AssignedTo))
         {
             await AddDeviceHistoryAsync(DeviceHistoryAction.UnAssigned, null, device);
