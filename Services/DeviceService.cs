@@ -276,8 +276,9 @@ public class DeviceService : IDeviceService
                 break;
 
             case DeviceHistoryAction.Inventory:
-                actionString = string.Format(action.GetAttribute(), user?.FirstName + " " + user?.LastName,
-                    user?.UserName);
+                if (user != null)
+                    actionString = string.Format(action.GetAttribute(),
+                        user.FirstName + " " + user.LastName + "(" + user.UserName + ")");
                 break;
 
             case DeviceHistoryAction.UpdateName:
