@@ -174,7 +174,7 @@ public class DeviceService : IDeviceService
         }
 
         await UpdateDeviceAssignedAsync(device, model);
-        
+
         if (device.Name != model.Name)
         {
             await AddDeviceHistoryAsync(DeviceHistoryAction.UpdateName, device.User, device, model.Name);
@@ -307,7 +307,7 @@ public class DeviceService : IDeviceService
         await _appContext.SaveChangesAsync();
     }
 
-    private async Task UpdateDeviceAssignedAsync(Device device, UpdateDeviceModel model )
+    private async Task UpdateDeviceAssignedAsync(Device device, UpdateDeviceModel model)
     {
         if (device.UserId == model.AssignedTo) return;
         if (string.IsNullOrEmpty(model.AssignedTo))
@@ -324,6 +324,5 @@ public class DeviceService : IDeviceService
             device.User = user;
             await AddDeviceHistoryAsync(DeviceHistoryAction.Assigned, user, device);
         }
-
     }
 }
